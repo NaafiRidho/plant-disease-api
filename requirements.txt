@@ -1,0 +1,12 @@
+flask>=3.0.0
+flask-cors>=4.0.0
+# TensorFlow: Python 3.13 butuh tf-nightly atau downgrade ke Python 3.11
+# Pilih SALAH SATU sesuai kondisi Anda:
+# tensorflow>=2.13.0     (Python 3.8-3.11)
+# tf-nightly             (Python 3.12+, experimental)
+tensorflow-cpu>=2.13.0; python_version < "3.12"
+Pillow>=10.0.0
+numpy>=1.24.0,<2.0.0
+python-dotenv>=1.0.0
+gunicorn>=21.0.0; sys_platform != "win32"
+waitress>=3.0.0; sys_platform == "win32"

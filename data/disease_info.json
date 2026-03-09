@@ -1,0 +1,315 @@
+{
+  "Pepper__bell___Bacterial_spot": {
+    "name_id": "Bercak Bakteri pada Paprika",
+    "plant": "Paprika",
+    "status": "Sakit",
+    "description": "Penyakit bercak bakteri yang disebabkan oleh Xanthomonas campestris pv. vesicatoria. Merupakan salah satu penyakit paling merusak pada tanaman paprika dan tomat.",
+    "symptoms": [
+      "Bercak coklat kecil berbatas kuning pada daun",
+      "Lesi basah berwarna gelap pada buah",
+      "Daun menguning dan gugur lebih awal",
+      "Bercak bergabung membentuk area nekrotik besar"
+    ],
+    "treatment": [
+      "Aplikasi fungisida berbahan tembaga (copper-based bactericide)",
+      "Hindari penyiraman dari atas untuk mengurangi penyebaran",
+      "Buang dan musnahkan bagian tanaman yang terinfeksi",
+      "Gunakan benih bersertifikat bebas penyakit",
+      "Rotasi tanaman setiap musim"
+    ],
+    "severity": "Tinggi",
+    "color": "#ef4444"
+  },
+  "Pepper__bell___healthy": {
+    "name_id": "Paprika Sehat",
+    "plant": "Paprika",
+    "status": "Sehat",
+    "description": "Tanaman paprika dalam kondisi sehat dengan daun yang segar dan berwarna hijau cerah tanpa tanda-tanda penyakit.",
+    "symptoms": [
+      "Daun berwarna hijau cerah dan mengkilap",
+      "Tidak ada bercak atau lesi pada daun",
+      "Pertumbuhan tanaman normal",
+      "Buah berkembang dengan baik"
+    ],
+    "treatment": [
+      "Jaga kelembapan tanah yang konsisten",
+      "Berikan pupuk seimbang secara rutin",
+      "Monitor tanaman secara berkala",
+      "Pastikan sirkulasi udara yang baik"
+    ],
+    "severity": "Tidak ada",
+    "color": "#22c55e"
+  },
+  "Potato___Early_blight": {
+    "name_id": "Hawar Awal Kentang",
+    "plant": "Kentang",
+    "status": "Sakit",
+    "description": "Penyakit jamur yang disebabkan oleh Alternaria solani. Menyerang daun tua terlebih dahulu sebelum menyebar ke daun muda.",
+    "symptoms": [
+      "Bercak coklat-hitam berbentuk cincin konsentris seperti target",
+      "Bercak dikelilingi jaringan kuning",
+      "Dimulai dari daun bawah yang lebih tua",
+      "Daun menguning dan rontok sebelum waktunya"
+    ],
+    "treatment": [
+      "Semprotkan fungisida berbahan aktif chlorothalonil atau mancozeb",
+      "Buang daun yang terinfeksi dan hancurkan",
+      "Pastikan jarak tanam yang memadai untuk sirkulasi udara",
+      "Hindari penyiraman berlebihan di malam hari",
+      "Mulsa tanah untuk mencegah percikan air dari tanah"
+    ],
+    "severity": "Sedang",
+    "color": "#f97316"
+  },
+  "Potato___Late_blight": {
+    "name_id": "Hawar Akhir Kentang",
+    "plant": "Kentang",
+    "status": "Sakit",
+    "description": "Penyakit paling destruktif pada kentang yang disebabkan oleh Phytophthora infestans. Penyakit ini yang menyebabkan bencana kelaparan besar di Irlandia pada abad ke-19.",
+    "symptoms": [
+      "Lesi basah berwarna coklat-hijau gelap pada daun",
+      "Lapisan putih seperti jamur di bagian bawah daun saat hujan",
+      "Infeksi menyebar cepat dalam kondisi lembab",
+      "Umbi kentang membusuk dengan bau khas"
+    ],
+    "treatment": [
+      "Segera aplikasikan fungisida sistemik (metalaxyl, cymoxanil)",
+      "Hancurkan seluruh tanaman yang terinfeksi parah",
+      "Hindari menanam di lahan yang pernah terinfeksi",
+      "Gunakan varietas tahan penyakit",
+      "Panen lebih awal jika infeksi sudah parah"
+    ],
+    "severity": "Sangat Tinggi",
+    "color": "#dc2626"
+  },
+  "Potato___healthy": {
+    "name_id": "Kentang Sehat",
+    "plant": "Kentang",
+    "status": "Sehat",
+    "description": "Tanaman kentang dalam kondisi prima dengan dedaunan hijau lebat dan pertumbuhan yang optimal.",
+    "symptoms": [
+      "Daun berwarna hijau gelap dan sehat",
+      "Tidak ada tanda-tanda infeksi atau lesi",
+      "Pertumbuhan batang dan daun normal",
+      "Pembentukan umbi berjalan baik"
+    ],
+    "treatment": [
+      "Pertahankan penyiraman rutin dan merata",
+      "Berikan pupuk kalium yang cukup untuk pembentukan umbi",
+      "Monitor serangan hama secara berkala",
+      "Lakukan pembubunan tanah secara teratur"
+    ],
+    "severity": "Tidak ada",
+    "color": "#22c55e"
+  },
+  "Tomato_Bacterial_spot": {
+    "name_id": "Bercak Bakteri pada Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Penyakit bakteri yang disebabkan oleh Xanthomonas perforans. Sangat umum di daerah tropis yang lembab dan hangat.",
+    "symptoms": [
+      "Bercak kecil berwarna coklat gelap dengan halo kuning",
+      "Lesi basah pada buah yang belum matang",
+      "Daun memiliki lubang kecil (shot-hole symptoms)",
+      "Penurunan kualitas dan hasil buah tomat"
+    ],
+    "treatment": [
+      "Semprotkan bakterisida berbahan tembaga",
+      "Hindari membasahi daun saat penyiraman",
+      "Gunakan benih yang sudah diperlakukan (treated seed)",
+      "Singkirkan gulma di sekitar tanaman",
+      "Rotasi tanaman dengan tanaman bukan solanaceae"
+    ],
+    "severity": "Tinggi",
+    "color": "#ef4444"
+  },
+  "Tomato_Early_blight": {
+    "name_id": "Hawar Awal Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Penyakit jamur oleh Alternaria solani yang dimulai dari daun-daun tua di bagian bawah tanaman.",
+    "symptoms": [
+      "Bercak coklat berbentuk oval dengan pola cincin konsentris",
+      "Jaringan kuning mengelilingi bercak",
+      "Daun tua rontok terlebih dahulu",
+      "Batang dapat terinfeksi di dekat permukaan tanah"
+    ],
+    "treatment": [
+      "Aplikasikan fungisida chlorothalonil secara preventif",
+      "Buang daun yang terinfeksi sesegera mungkin",
+      "Berikan mulsa organik untuk mencegah percikan tanah",
+      "Pastikan penyiraman di pangkal tanaman, bukan daun",
+      "Berikan pupuk yang seimbang untuk tanaman yang kuat"
+    ],
+    "severity": "Sedang",
+    "color": "#f97316"
+  },
+  "Tomato_Late_blight": {
+    "name_id": "Hawar Akhir Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Penyakit serius yang disebabkan oleh Phytophthora infestans, sama dengan hawar akhir kentang. Menyebar sangat cepat dalam kondisi dingin dan lembab.",
+    "symptoms": [
+      "Lesi besar berwarna coklat kehijauan basah",
+      "Spora putih terlihat di bagian bawah daun",
+      "Buah membusuk dengan cepat",
+      "Seluruh tanaman dapat mati dalam beberapa hari"
+    ],
+    "treatment": [
+      "Segera aplikasikan fungisida sistemik",
+      "Singkirkan dan hancurkan tanaman yang terinfeksi berat",
+      "Hindari menanam kentang dan tomat berdekatan",
+      "Gunakan plastik mulsa untuk mengurangi kelembaban tanah",
+      "Pantau prakiraan cuaca dan lakukan penyemprotan preventif"
+    ],
+    "severity": "Sangat Tinggi",
+    "color": "#dc2626"
+  },
+  "Tomato_Leaf_Mold": {
+    "name_id": "Kapang Daun Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Disebabkan oleh jamur Passalora fulva (Fulvia fulva). Paling umum terjadi pada tomat yang ditanam di dalam rumah kaca dengan kelembaban tinggi.",
+    "symptoms": [
+      "Bercak kuning pada permukaan atas daun",
+      "Lapisan beludru abu-abu kehijauan di bagian bawah daun",
+      "Daun menggulung ke atas",
+      "Daun yang terinfeksi parah mengering dan rontok"
+    ],
+    "treatment": [
+      "Kurangi kelembaban dengan meningkatkan ventilasi",
+      "Semprotkan fungisida berbahan mankozeb atau klorotalonil",
+      "Pangkas daun yang terinfeksi dan musnahkan",
+      "Hindari penyiraman yang berlebihan",
+      "Gunakan varietas tomat yang tahan kapang daun"
+    ],
+    "severity": "Sedang",
+    "color": "#f97316"
+  },
+  "Tomato_Septoria_leaf_spot": {
+    "name_id": "Bercak Septoria pada Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Penyakit jamur yang disebabkan oleh Septoria lycopersici. Salah satu penyakit daun tomat yang paling umum di seluruh dunia.",
+    "symptoms": [
+      "Bercak bulat kecil dengan pusat abu-abu dan tepi coklat gelap",
+      "Titik hitam kecil (piknidia) di tengah bercak",
+      "Dimulai dari daun bawah dan menyebar ke atas",
+      "Daun yang terinfeksi menguning lalu rontok"
+    ],
+    "treatment": [
+      "Aplikasikan fungisida klorotalonil atau mankozeb",
+      "Buang semua sisa tanaman setelah panen",
+      "Hindari menyentuh tanaman saat basah",
+      "Lakukan rotasi tanaman minimal 2 tahun",
+      "Gunakan mulsa untuk mencegah percikan spora dari tanah"
+    ],
+    "severity": "Sedang",
+    "color": "#f97316"
+  },
+  "Tomato_Spider_mites_Two_spotted_spider_mite": {
+    "name_id": "Tungau Merah pada Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Serangan tungau dua titik (Tetranychus urticae), yang merupakan hama utama tomat. Berkembang pesat saat cuaca panas dan kering.",
+    "symptoms": [
+      "Bintik-bintik kuning halus pada permukaan atas daun",
+      "Jaring halus di bagian bawah daun dan batang",
+      "Daun terlihat pucat, abu-abu, dan mengering",
+      "Serangan parah menyebabkan daun rontok"
+    ],
+    "treatment": [
+      "Semprotkan akarisida (mitisida) yang direkomendasikan",
+      "Semprot air bertekanan tinggi untuk mengurangi populasi",
+      "Gunakan predator alami seperti Phytoseiulus persimilis",
+      "Hindari penggunaan insektisida yang membunuh predator alami",
+      "Pertahankan kelembaban tanah yang cukup"
+    ],
+    "severity": "Tinggi",
+    "color": "#ef4444"
+  },
+  "Tomato__Target_Spot": {
+    "name_id": "Bercak Target pada Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Penyakit jamur yang disebabkan oleh Corynespora cassiicola. Sering ditemukan pada tomat di daerah tropis dan subtropis.",
+    "symptoms": [
+      "Bercak coklat bulat dengan pola seperti sasak tembak",
+      "Lesi dapat menyatu membentuk area nekrotik luas",
+      "Menyerang daun, batang, dan buah",
+      "Daun yang terinfeksi parah rontok"
+    ],
+    "treatment": [
+      "Aplikasikan fungisida berbahan azoksistrobin atau difenokonazol",
+      "Buang dan musnahkan bagian tanaman yang terinfeksi",
+      "Pastikan jarak tanam yang cukup untuk sirkulasi udara",
+      "Hindari kelembaban berlebih di sekitar tanaman",
+      "Gunakan varietas yang relatif tahan penyakit"
+    ],
+    "severity": "Tinggi",
+    "color": "#ef4444"
+  },
+  "Tomato__Tomato_YellowLeaf__Curl_Virus": {
+    "name_id": "Virus Keriting Daun Kuning Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Disebabkan oleh Tomato yellow leaf curl virus (TYLCV) yang ditularkan oleh kutu kebul (Bemisia tabaci). Merupakan ancaman serius bagi budidaya tomat.",
+    "symptoms": [
+      "Daun muda menggulung ke atas dan menguning",
+      "Pertumbuhan tanaman sangat terhambat (kerdil)",
+      "Bunga rontok sebelum berkembang menjadi buah",
+      "Buah yang terbentuk sangat sedikit dan kecil"
+    ],
+    "treatment": [
+      "Kendalikan populasi kutu kebul dengan insektisida sistemik",
+      "Gunakan mulsa reflektif perak untuk mengusir kutu kebul",
+      "Pasang perangkap lengket kuning di sekitar tanaman",
+      "Singkirkan tanaman yang terinfeksi parah segera",
+      "Gunakan varietas tomat yang tahan TYLCV"
+    ],
+    "severity": "Sangat Tinggi",
+    "color": "#dc2626"
+  },
+  "Tomato__Tomato_mosaic_virus": {
+    "name_id": "Virus Mosaik Tomat",
+    "plant": "Tomat",
+    "status": "Sakit",
+    "description": "Disebabkan oleh Tomato mosaic virus (ToMV). Menyebar melalui kontak langsung, alat pertanian, dan tangan. Sangat stabil dan dapat bertahan lama.",
+    "symptoms": [
+      "Pola mosaik kuning-hijau tidak beraturan pada daun",
+      "Daun muda mengkerut dan berkerut tidak normal",
+      "Buah menunjukkan perubahan warna tidak merata",
+      "Pertumbuhan tanaman terhambat secara keseluruhan"
+    ],
+    "treatment": [
+      "Tidak ada obat untuk tanaman yang sudah terinfeksi",
+      "Singkirkan dan musnahkan tanaman yang terinfeksi",
+      "Desinfeksi semua alat dengan larutan pemutih 10%",
+      "Cuci tangan sebelum menyentuh tanaman sehat",
+      "Gunakan benih yang bebas virus bersertifikat"
+    ],
+    "severity": "Tinggi",
+    "color": "#ef4444"
+  },
+  "Tomato_healthy": {
+    "name_id": "Tomat Sehat",
+    "plant": "Tomat",
+    "status": "Sehat",
+    "description": "Tanaman tomat dalam kondisi optimal dengan pertumbuhan yang baik, daun hijau segar, dan tidak ada tanda-tanda penyakit.",
+    "symptoms": [
+      "Daun berwarna hijau tua yang kaya klorofil",
+      "Tidak ada bercak, lesi, atau perubahan warna abnormal",
+      "Batang tegak dan kuat",
+      "Buah berkembang dengan baik dan merata"
+    ],
+    "treatment": [
+      "Lakukan penyiraman teratur di pangkal tanaman",
+      "Berikan pupuk NPK yang seimbang",
+      "Pangkas tunas air (suckers) secara rutin",
+      "Monitor hama dan penyakit secara mingguan",
+      "Pasang ajir atau tiang penyangga untuk tanaman yang tinggi"
+    ],
+    "severity": "Tidak ada",
+    "color": "#22c55e"
+  }
+}
