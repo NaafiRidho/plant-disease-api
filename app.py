@@ -3,10 +3,63 @@ import json
 import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flasgger import Swagger
 from utils.model_utils import load_model, predict_image, get_class_labels, is_model_loaded
 
 # Inisialisasi Flask app
 app = Flask(__name__)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SWAGGER / FLASGGER CONFIG
+# ─────────────────────────────────────────────────────────────────────────────
+
+swagger_template = {
+    "swagger": "2.0",
+    "info": {
+        "title": "PlantScan AI — Plant Disease Detection API",
+        "description": (
+            "REST API untuk mendeteksi penyakit tanaman dari gambar daun menggunakan "
+            "model CNN MobileNetV2 (Transfer Learning). Dataset: PlantVillage (15 kelas).\n\n"
+            "**Tanaman yang didukung:** Paprika, Kentang, Tomat\n\n"
+            "**Endpoint utama:** `POST /api/predict` — upload gambar → hasil prediksi + info penyakit"
+        ),
+        "version": "1.0.0",
+        "contact": {
+            "name": "PlantScan AI",
+            "url": "https://plant-disease-frontend-seven.vercel.app/"
+        },
+        "license": {
+            "name": "MIT"
+        }
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "schemes": ["http"],
+    "consumes": ["application/json", "multipart/form-data"],
+    "produces": ["application/json"],
+    "tags": [
+        {"name": "Status",    "description": "Health check & server info"},
+        {"name": "Penyakit",  "description": "Informasi kelas penyakit tanaman"},
+        {"name": "Prediksi",  "description": "Deteksi penyakit dari gambar"},
+    ]
+}
+
+swagger_config = {
+    "headers": [],
+    "specs": [{
+        "endpoint": "apispec",
+        "route": "/apispec.json",
+        "rule_filter": lambda rule: True,
+        "model_filter": lambda tag: True,
+    }],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs",
+    "title": "PlantScan AI — API Docs",
+    "uiversion": 3,
+}
+
+swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
 # CORS: izinkan request dari Next.js (localhost:3000) dan semua origin saat development
 CORS(app, resources={
@@ -41,10 +94,30 @@ def allowed_file(filename: str) -> bool:
 
 @app.route('/')
 def index():
-    """Root endpoint — redirect info ke /api/health."""
+    """API Info.
+    ---
+    tags:
+      - Status
+    summary: Informasi dasar API dan daftar endpoint
+    responses:
+      200:
+        description: Informasi API berhasil diambil
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Sistem Pendeteksi Penyakit Tanaman API
+            version:
+              type: string
+              example: "1.0.0"
+            endpoints:
+              type: object
+    """
     return jsonify({
         "message": "Sistem Pendeteksi Penyakit Tanaman API",
         "version": "1.0.0",
+        "docs": "http://localhost:5000/apidocs",
         "endpoints": {
             "health": "/api/health",
             "predict": "POST /api/predict",
@@ -56,7 +129,40 @@ def index():
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
+    """Health Check.
+    ---
+    tags:
+      - Status
+    summary: Cek status server dan model ML
+    description: >
+      Mengembalikan status server, apakah model sudah dimuat,
+      mode operasi (real/mock), dan uptime server.
+    responses:
+      200:
+        description: Status server berhasil diambil
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            model_loaded:
+              type: boolean
+              example: false
+            model_mode:
+              type: string
+              enum: [real, mock]
+              example: mock
+            uptime_seconds:
+              type: number
+              example: 120.5
+            supported_classes:
+              type: integer
+              example: 15
+            message:
+              type: string
+              example: Server berjalan (model belum ditraining — mode mock aktif)
+    """
     uptime = round(time.time() - START_TIME, 2)
     return jsonify({
         "status": "ok",
@@ -70,8 +176,47 @@ def health():
 
 @app.route('/api/classes', methods=['GET'])
 def get_classes():
-    """
-    Endpoint untuk mendapatkan semua kelas penyakit beserta informasinya.
+    """Daftar Semua Kelas Penyakit.
+    ---
+    tags:
+      - Penyakit
+    summary: Ambil semua 15 kelas penyakit tanaman
+    description: >
+      Mengembalikan daftar lengkap semua kelas penyakit yang didukung sistem,
+      mencakup Paprika (2 kelas), Kentang (3 kelas), dan Tomat (10 kelas).
+    responses:
+      200:
+        description: Daftar kelas berhasil diambil
+        schema:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 15
+            classes:
+              type: array
+              items:
+                type: object
+                properties:
+                  class_key:
+                    type: string
+                    example: Tomato_healthy
+                  name_id:
+                    type: string
+                    example: Tomat Sehat
+                  plant:
+                    type: string
+                    example: Tomat
+                  status:
+                    type: string
+                    enum: [Sehat, Sakit]
+                    example: Sehat
+                  severity:
+                    type: string
+                    example: Tidak ada
+                  color:
+                    type: string
+                    example: "#22c55e"
     """
     labels = get_class_labels()
     classes = []
@@ -95,9 +240,65 @@ def get_classes():
 
 @app.route('/api/disease/<string:class_name>', methods=['GET'])
 def get_disease_info(class_name: str):
-    """
-    Endpoint untuk mendapatkan info detail satu penyakit.
-    Gunakan underscore sebagai pemisah dalam URL.
+    """Detail Informasi Penyakit.
+    ---
+    tags:
+      - Penyakit
+    summary: Ambil info lengkap satu kelas penyakit
+    description: >
+      Mengembalikan informasi detail penyakit tertentu, termasuk deskripsi,
+      gejala, cara penanganan, dan tingkat keparahan.
+      Gunakan nama kelas persis seperti di /api/classes (class_key).
+    parameters:
+      - name: class_name
+        in: path
+        type: string
+        required: true
+        description: Nama kelas penyakit (class_key)
+        example: Tomato_healthy
+    responses:
+      200:
+        description: Info penyakit berhasil diambil
+        schema:
+          type: object
+          properties:
+            class_key:
+              type: string
+              example: Tomato_healthy
+            name_id:
+              type: string
+              example: Tomat Sehat
+            plant:
+              type: string
+              example: Tomat
+            status:
+              type: string
+              example: Sehat
+            description:
+              type: string
+              example: Tanaman tomat dalam kondisi optimal.
+            symptoms:
+              type: array
+              items:
+                type: string
+            treatment:
+              type: array
+              items:
+                type: string
+            severity:
+              type: string
+              example: Tidak ada
+            color:
+              type: string
+              example: "#22c55e"
+      404:
+        description: Kelas penyakit tidak ditemukan
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Informasi penyakit 'xyz' tidak ditemukan
     """
     # Cari di disease info (case-insensitive partial match)
     info = DISEASE_INFO.get(class_name)
@@ -123,11 +324,114 @@ def get_disease_info(class_name: str):
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
-    """
-    Endpoint utama prediksi penyakit tanaman dari gambar.
-    
-    Request: multipart/form-data dengan field 'file' (gambar)
-    Response: JSON dengan prediksi kelas dan confidence score
+    """Deteksi Penyakit dari Gambar.
+    ---
+    tags:
+      - Prediksi
+    summary: Upload gambar daun → prediksi penyakit
+    description: >
+      Endpoint utama sistem. Upload gambar daun tanaman (JPG/PNG/WEBP),
+      model AI akan menganalisis dan mengembalikan prediksi penyakit
+      beserta confidence score (top-3) dan informasi penyakit lengkap.
+
+
+      **Catatan:** Jika model belum ditraining, sistem akan berjalan dalam
+      mode mock dan mengembalikan hasil simulasi.
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: Gambar daun tanaman (JPG, PNG, WEBP, BMP). Maksimum 10 MB.
+    responses:
+      200:
+        description: Prediksi berhasil dilakukan
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            predicted_class:
+              type: string
+              example: Tomato_healthy
+            confidence:
+              type: number
+              format: float
+              example: 0.9823
+            confidence_percent:
+              type: number
+              example: 98.23
+            disease_info:
+              type: object
+              properties:
+                name_id:
+                  type: string
+                  example: Tomat Sehat
+                plant:
+                  type: string
+                  example: Tomat
+                status:
+                  type: string
+                  enum: [Sehat, Sakit]
+                description:
+                  type: string
+                symptoms:
+                  type: array
+                  items:
+                    type: string
+                treatment:
+                  type: array
+                  items:
+                    type: string
+                severity:
+                  type: string
+                color:
+                  type: string
+            top_3:
+              type: array
+              description: Top-3 prediksi dengan confidence score
+              items:
+                type: object
+                properties:
+                  class:
+                    type: string
+                  confidence:
+                    type: number
+                  confidence_percent:
+                    type: number
+                  name_id:
+                    type: string
+                  plant:
+                    type: string
+                  status:
+                    type: string
+                  color:
+                    type: string
+            inference_time_ms:
+              type: number
+              example: 245.3
+            model_mode:
+              type: string
+              enum: [real, mock]
+              example: mock
+      400:
+        description: Request tidak valid (tidak ada file / format salah / file terlalu besar)
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Tidak ada file gambar dalam request
+      500:
+        description: Kesalahan internal server
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
     """
     # Validasi: pastikan ada file dalam request
     if 'file' not in request.files:

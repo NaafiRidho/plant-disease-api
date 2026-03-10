@@ -1,5 +1,6 @@
 flask>=3.0.0
 flask-cors>=4.0.0
+flasgger>=0.9.7
 # TensorFlow: Python 3.13 butuh tf-nightly atau downgrade ke Python 3.11
 # Pilih SALAH SATU sesuai kondisi Anda:
 # tensorflow>=2.13.0     (Python 3.8-3.11)
