@@ -61,10 +61,14 @@ swagger_config = {
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
-# CORS: izinkan request dari Next.js (localhost:3000) dan semua origin saat development
+# CORS: izinkan request origin dari Vercel dan Localhost
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+        "origins": [
+            "http://localhost:3000", 
+            "http://127.0.0.1:3000",
+            "https://plant-disease-frontend-seven.vercel.app"
+        ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -572,9 +576,10 @@ if __name__ == '__main__':
     print(f"[INFO] Server berjalan di: http://localhost:5000")
     print("=" * 60)
     
+    port = int(os.environ.get("PORT", 5000))
     app.run(
         host='0.0.0.0',
-        port=5000,
-        debug=True,
+        port=port,
+        debug=False,
         use_reloader=False  # Nonaktifkan auto-reload agar model tidak dimuat 2x
     )

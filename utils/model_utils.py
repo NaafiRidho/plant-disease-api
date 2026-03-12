@@ -15,7 +15,11 @@ except ImportError:
     print("WARNING: TensorFlow tidak tersedia. Gunakan mode mock.")
 
 # Path ke model dan label
-MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'model')
+# backend/utils/ → backend/ → model/
+BACKEND_UTILS_DIR = os.path.dirname(__file__)          # backend/utils/
+BACKEND_DIR = os.path.dirname(BACKEND_UTILS_DIR)       # backend/
+PROJECT_DIR = os.path.dirname(BACKEND_DIR)             # SistemPendeteksiTanaman/
+MODEL_DIR = os.path.join(BACKEND_DIR, 'model')
 MODEL_PATH = os.path.join(MODEL_DIR, 'plant_disease_model.h5')
 LABELS_PATH = os.path.join(MODEL_DIR, 'class_labels.json')
 
