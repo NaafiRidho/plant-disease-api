@@ -8,11 +8,19 @@ import io
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 try:
+    # Try importing full tensorflow first for local development, 
+    # fallback to tflite_runtime for deployment
     import tensorflow as tf
     TF_AVAILABLE = True
+    USE_TFLITE = False
 except ImportError:
-    TF_AVAILABLE = False
-    print("WARNING: TensorFlow tidak tersedia. Gunakan mode mock.")
+    try:
+        import tflite_runtime.interpreter as tflite
+        TF_AVAILABLE = True
+        USE_TFLITE = True
+    except ImportError:
+        TF_AVAILABLE = False
+        print("WARNING: TensorFlow/TFLite tidak tersedia. Gunakan mode mock.")
 
 # Path ke model dan label
 # backend/utils/ → backend/ → model/
@@ -20,7 +28,7 @@ BACKEND_UTILS_DIR = os.path.dirname(__file__)          # backend/utils/
 BACKEND_DIR = os.path.dirname(BACKEND_UTILS_DIR)       # backend/
 PROJECT_DIR = os.path.dirname(BACKEND_DIR)             # SistemPendeteksiTanaman/
 MODEL_DIR = os.path.join(BACKEND_DIR, 'model')
-MODEL_PATH = os.path.join(MODEL_DIR, 'plant_disease_model.h5')
+MODEL_PATH = os.path.join(MODEL_DIR, 'plant_disease_model.tflite')
 LABELS_PATH = os.path.join(MODEL_DIR, 'class_labels.json')
 
 # Global model variable
@@ -73,8 +81,15 @@ def load_model():
         return False
 
     try:
-        _model = tf.keras.models.load_model(MODEL_PATH)
-        print(f"[MODEL] Model berhasil dimuat dari: {MODEL_PATH}")
+        if USE_TFLITE:
+            _model = tflite.Interpreter(model_path=MODEL_PATH)
+            _model.allocate_tensors()
+            print(f"[MODEL] TFLite Model berhasil dimuat dari: {MODEL_PATH}")
+        else:
+            # Jika user maksa pakai tflite pakai keras tf lite (kasus tf ada tp model tflite)
+            _model = tf.lite.Interpreter(model_path=MODEL_PATH)
+            _model.allocate_tensors()
+            print(f"[MODEL] TFLite Model berhasil dimuat dari: {MODEL_PATH}")
         return True
     except Exception as e:
         print(f"[MODEL] Gagal memuat model: {e}")
@@ -136,7 +151,18 @@ def predict_image(image_bytes: bytes) -> dict:
 
     # Prediksi menggunakan model
     try:
-        predictions = _model.predict(img_array, verbose=0)
+        # Get input and output tensors
+        input_details = _model.get_input_details()
+        output_details = _model.get_output_details()
+
+        # Set tensor to point to the input data to be inferred
+        _model.set_tensor(input_details[0]['index'], img_array)
+
+        # Run inference
+        _model.invoke()
+
+        # Retrieve output
+        predictions = _model.get_tensor(output_details[0]['index'])
         predictions = predictions[0]  # Ambil batch pertama
         
         # Top-3 prediksi

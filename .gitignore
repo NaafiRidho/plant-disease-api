@@ -15,7 +15,7 @@ env/
 
 # Model files (terlalu besar untuk Git)
 ../ml-model/model/*.h5
-../ml-model/model/*.tflite
+# ../ml-model/model/*.tflite  # allow tflite because it's small
 ../ml-model/logs/
 
 # IDE
