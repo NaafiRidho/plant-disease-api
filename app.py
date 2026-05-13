@@ -112,19 +112,6 @@ app.register_blueprint(status_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(predict_bp)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# LOAD ML MODEL
-# ─────────────────────────────────────────────────────────────────────────────
-
-from utils.model_utils import load_model
-
-print("[STARTUP] Memuat model machine learning...")
-model_loaded = load_model()
-if model_loaded:
-    print("[OK] Model berhasil dimuat - Mode: REAL")
-else:
-    print("[WARNING] Model gagal dimuat - Mode: MOCK")
-
 # Import model agar Flask-Migrate dapat mendeteksi tabel
 import models  # noqa: F401
 
