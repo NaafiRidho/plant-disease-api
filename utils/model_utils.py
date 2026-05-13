@@ -23,11 +23,9 @@ except ImportError:
         print("WARNING: TensorFlow/TFLite tidak tersedia. Gunakan mode mock.")
 
 # Path ke model dan label
-# backend/utils/ → backend/ → model/
-BACKEND_UTILS_DIR = os.path.dirname(__file__)          # backend/utils/
-BACKEND_DIR = os.path.dirname(BACKEND_UTILS_DIR)       # backend/
-PROJECT_DIR = os.path.dirname(BACKEND_DIR)             # SistemPendeteksiTanaman/
-MODEL_DIR = os.path.join(BACKEND_DIR, 'model')
+# Mencari folder 'model' yang berada di tingkat yang sama dengan folder 'utils'
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR = os.path.join(BASE_DIR, 'model')
 MODEL_PATH = os.path.join(MODEL_DIR, 'plant_disease_model.tflite')
 LABELS_PATH = os.path.join(MODEL_DIR, 'class_labels.json')
 
