@@ -4,7 +4,7 @@ from controllers import predict_controller
 predict_bp = Blueprint('predict', __name__)
 
 
-@predict_bp.route('/api/predict', methods=['POST'])
+@predict_bp.route('/api/predict', methods=['POST'], strict_slashes=False)
 def predict():
     """Deteksi Penyakit dari Gambar.
     ---

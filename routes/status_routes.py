@@ -29,7 +29,7 @@ def index():
     return status_controller.index()
 
 
-@status_bp.route('/api/health', methods=['GET'])
+@status_bp.route('/api/health', methods=['GET'], strict_slashes=False)
 def health():
     """Health Check.
     ---
