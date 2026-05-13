@@ -81,16 +81,12 @@ swagger_config = {
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
-# CORS: izinkan request origin dari Vercel dan Localhost
+# CORS: Izinkan request dari frontend (Vercel & Localhost)
 CORS(app, resources={
     r"/api/*": {
-        "origins": [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "https://plant-disease-frontend-seven.vercel.app"
-        ],
+        "origins": "*",  # Izinkan semua origin sementara untuk testing
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
     }
 })
 
