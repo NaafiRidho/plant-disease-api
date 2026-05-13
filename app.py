@@ -116,6 +116,19 @@ app.register_blueprint(status_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(predict_bp)
 
+# ─────────────────────────────────────────────────────────────────────────────
+# LOAD ML MODEL
+# ─────────────────────────────────────────────────────────────────────────────
+
+from utils.model_utils import load_model
+
+print("[STARTUP] Memuat model machine learning...")
+model_loaded = load_model()
+if model_loaded:
+    print("[OK] Model berhasil dimuat - Mode: REAL")
+else:
+    print("[WARNING] Model gagal dimuat - Mode: MOCK")
+
 # Import model agar Flask-Migrate dapat mendeteksi tabel
 import models  # noqa: F401
 
@@ -148,20 +161,9 @@ def internal_server_error(e):
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    from utils.model_utils import load_model
-
     print("=" * 60)
     print("  Sistem Pendeteksi Penyakit Tanaman - Flask Backend")
     print("=" * 60)
-
-    model_loaded = load_model()
-
-    if model_loaded:
-        print("[OK] Model berhasil dimuat - Mode: REAL")
-    else:
-        print("[INFO] Model belum tersedia - Mode: MOCK")
-        print("[INFO] Jalankan: cd ../ml-model && python train.py")
-
     print(f"[INFO] Disease info: {len(DISEASE_INFO)} kelas terdaftar")
     print(f"[INFO] Server berjalan di: http://localhost:5000")
     print("=" * 60)
@@ -171,5 +173,5 @@ if __name__ == '__main__':
         host='0.0.0.0',
         port=port,
         debug=False,
-        use_reloader=False  # Nonaktifkan auto-reload agar model tidak dimuat 2x
+        use_reloader=False
     )
