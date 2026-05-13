@@ -4,9 +4,30 @@ import time
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flasgger import Swagger
+from dotenv import load_dotenv
+from extensions import db, migrate
+
+# Load environment variables dari file .env
+load_dotenv()
 
 # Inisialisasi Flask app
 app = Flask(__name__)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# KONFIGURASI DATABASE POSTGRESQL
+# ─────────────────────────────────────────────────────────────────────────────
+
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'postgresql://postgres:password@localhost:5432/plantscan_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # nonaktifkan overhead tracking
+app.config['SQLALCHEMY_ECHO'] = os.environ.get('FLASK_DEBUG', 'False') == 'True'  # log SQL di mode debug
+
+# Inisialisasi ekstensi database
+db.init_app(app)
+migrate.init_app(app, db)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SWAGGER / FLASGGER CONFIG
@@ -94,6 +115,9 @@ from routes.predict_routes import predict_bp
 app.register_blueprint(status_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(predict_bp)
+
+# Import model agar Flask-Migrate dapat mendeteksi tabel
+import models  # noqa: F401
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ERROR HANDLERS
