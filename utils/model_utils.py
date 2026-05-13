@@ -23,15 +23,16 @@ except ImportError:
         print("WARNING: TensorFlow/TFLite tidak tersedia. Gunakan mode mock.")
 
 # Path ke model dan label
-# Mencari folder 'model' yang berada di tingkat yang sama dengan folder 'utils'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, 'model')
-MODEL_PATH = os.path.join(MODEL_DIR, 'plant_disease_model.tflite')
+MODEL_PATH_H5 = os.path.join(MODEL_DIR, 'plant_disease_model.h5')
+MODEL_PATH_TFLITE = os.path.join(MODEL_DIR, 'plant_disease_model.tflite')
 LABELS_PATH = os.path.join(MODEL_DIR, 'class_labels.json')
 
 # Global model variable
 _model = None
 _class_labels = None
+_is_tflite = False
 
 # Class labels default (sesuai urutan training ImageDataGenerator alphanumeric)
 DEFAULT_CLASS_LABELS = [
@@ -54,10 +55,9 @@ DEFAULT_CLASS_LABELS = [
 
 IMG_SIZE = (224, 224)
 
-
 def load_model():
-    """Load model TensorFlow dari file .h5"""
-    global _model, _class_labels
+    """Load model TensorFlow (prioritas .h5, fallback .tflite)"""
+    global _model, _class_labels, _is_tflite
 
     # Load class labels
     if os.path.exists(LABELS_PATH):
@@ -68,30 +68,38 @@ def load_model():
         _class_labels = DEFAULT_CLASS_LABELS
         print(f"[MODEL] Menggunakan default class labels: {len(_class_labels)} kelas")
 
-    # Load model
     if not TF_AVAILABLE:
         print("[MODEL] TensorFlow tidak tersedia, mode mock aktif.")
         return False
 
-    if not os.path.exists(MODEL_PATH):
-        print(f"[MODEL] File model tidak ditemukan di: {MODEL_PATH}")
-        print("[MODEL] Mode mock aktif. Jalankan train.py terlebih dahulu.")
-        return False
+    # 1. Coba muat model .h5 (Keras) - Lebih stabil di production
+    if os.path.exists(MODEL_PATH_H5):
+        try:
+            print(f"[MODEL] Mencoba memuat model Keras (.h5) dari: {MODEL_PATH_H5}")
+            _model = tf.keras.models.load_model(MODEL_PATH_H5)
+            _is_tflite = False
+            print("[MODEL] Model Keras (.h5) berhasil dimuat!")
+            return True
+        except Exception as e:
+            print(f"[MODEL] Gagal memuat .h5: {e}")
 
-    try:
-        if USE_TFLITE:
-            _model = tflite.Interpreter(model_path=MODEL_PATH)
+    # 2. Fallback ke .tflite jika .h5 tidak ada atau gagal
+    if os.path.exists(MODEL_PATH_TFLITE):
+        try:
+            print(f"[MODEL] Mencoba memuat model TFLite dari: {MODEL_PATH_TFLITE}")
+            if USE_TFLITE:
+                _model = tflite.Interpreter(model_path=MODEL_PATH_TFLITE)
+            else:
+                _model = tf.lite.Interpreter(model_path=MODEL_PATH_TFLITE)
             _model.allocate_tensors()
-            print(f"[MODEL] TFLite Model berhasil dimuat dari: {MODEL_PATH}")
-        else:
-            # Jika user maksa pakai tflite pakai keras tf lite (kasus tf ada tp model tflite)
-            _model = tf.lite.Interpreter(model_path=MODEL_PATH)
-            _model.allocate_tensors()
-            print(f"[MODEL] TFLite Model berhasil dimuat dari: {MODEL_PATH}")
-        return True
-    except Exception as e:
-        print(f"[MODEL] Gagal memuat model: {e}")
-        return False
+            _is_tflite = True
+            print("[MODEL] Model TFLite berhasil dimuat!")
+            return True
+        except Exception as e:
+            print(f"[MODEL] Gagal memuat .tflite: {e}")
+
+    print("[MODEL] Tidak ada file model valid ditemukan. Mode mock aktif.")
+    return False
 
 
 def preprocess_image(image_bytes: bytes) -> np.ndarray:
@@ -149,19 +157,24 @@ def predict_image(image_bytes: bytes) -> dict:
 
     # Prediksi menggunakan model
     try:
-        # Get input and output tensors
-        input_details = _model.get_input_details()
-        output_details = _model.get_output_details()
+        if _is_tflite:
+            # Get input and output tensors
+            input_details = _model.get_input_details()
+            output_details = _model.get_output_details()
 
-        # Set tensor to point to the input data to be inferred
-        _model.set_tensor(input_details[0]['index'], img_array)
+            # Set tensor to point to the input data to be inferred
+            _model.set_tensor(input_details[0]['index'], img_array)
 
-        # Run inference
-        _model.invoke()
+            # Run inference
+            _model.invoke()
 
-        # Retrieve output
-        predictions = _model.get_tensor(output_details[0]['index'])
-        predictions = predictions[0]  # Ambil batch pertama
+            # Retrieve output
+            predictions = _model.get_tensor(output_details[0]['index'])
+            predictions = predictions[0]  # Ambil batch pertama
+        else:
+            # Prediksi Keras biasa (.h5)
+            predictions = _model.predict(img_array, verbose=0)
+            predictions = predictions[0]
         
         # Top-3 prediksi
         top_indices = np.argsort(predictions)[::-1][:3]
