@@ -4,20 +4,22 @@ import numpy as np
 from PIL import Image
 import io
 
-# TensorFlow import dengan suppress warning
+# TensorFlow/TFLite import
+# Prioritaskan tflite_runtime (ringan, cocok untuk Render free tier)
+# Fallback ke tensorflow penuh jika tersedia (untuk development lokal)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 try:
-    # Try importing full tensorflow first for local development, 
-    # fallback to tflite_runtime for deployment
-    import tensorflow as tf
+    import tflite_runtime.interpreter as tflite
     TF_AVAILABLE = True
-    USE_TFLITE = False
+    USE_TFLITE = True
+    print("[MODEL] tflite_runtime dimuat (mode ringan).")
 except ImportError:
     try:
-        import tflite_runtime.interpreter as tflite
+        import tensorflow as tf
         TF_AVAILABLE = True
-        USE_TFLITE = True
+        USE_TFLITE = False
+        print("[MODEL] tensorflow penuh dimuat (mode development).")
     except ImportError:
         TF_AVAILABLE = False
         print("WARNING: TensorFlow/TFLite tidak tersedia. Gunakan mode mock.")

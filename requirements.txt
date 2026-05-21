@@ -12,8 +12,9 @@ alembic==1.18.4
 psycopg2-binary==2.9.12
 
 # ML & Image Processing
-# TF 2.15 = versi terakhir yang menggunakan Keras 2.x (kompatibel dengan model .h5 lama)
-tensorflow-cpu==2.15.1
+# tflite-runtime jauh lebih ringan dari tensorflow (~30MB vs ~500MB)
+# Cocok untuk Render free tier (RAM 512MB)
+tflite-runtime
 numpy
 pillow
 
