@@ -16,6 +16,12 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def __init__(self, username: str, email: str, role: str = 'user', is_active: bool = True):
+        self.username = username
+        self.email = email
+        self.role = role
+        self.is_active = is_active
+
     def set_password(self, password):
         """Mengubah password menjadi hash rahasia."""
         self.password_hash = generate_password_hash(password)
