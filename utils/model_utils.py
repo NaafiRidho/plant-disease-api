@@ -25,7 +25,8 @@ except ImportError:
 # Path ke model dan label
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, 'model')
-MODEL_PATH_H5 = os.path.join(MODEL_DIR, 'plant_disease_model.h5')
+MODEL_PATH_KERAS = os.path.join(MODEL_DIR, 'plant_disease_model.keras')  # Format baru (Keras 3.x)
+MODEL_PATH_H5 = os.path.join(MODEL_DIR, 'plant_disease_model.h5')        # Format lama (Keras 2.x)
 MODEL_PATH_TFLITE = os.path.join(MODEL_DIR, 'plant_disease_model.tflite')
 LABELS_PATH = os.path.join(MODEL_DIR, 'class_labels.json')
 
@@ -72,7 +73,18 @@ def load_model():
         print("[MODEL] TensorFlow tidak tersedia, mode mock aktif.")
         return False
 
-    # 1. Coba muat model .h5 (Keras) - Lebih stabil di production
+    # 1. Coba muat model .keras (format baru Keras 3.x) — prioritas utama
+    if os.path.exists(MODEL_PATH_KERAS):
+        try:
+            print(f"[MODEL] Mencoba memuat model Keras 3.x (.keras) dari: {MODEL_PATH_KERAS}")
+            _model = tf.keras.models.load_model(MODEL_PATH_KERAS)
+            _is_tflite = False
+            print("[MODEL] Model .keras berhasil dimuat!")
+            return True
+        except Exception as e:
+            print(f"[MODEL] Gagal memuat .keras: {e}")
+
+    # 2. Fallback ke .h5 (format lama Keras 2.x)
     if os.path.exists(MODEL_PATH_H5):
         try:
             print(f"[MODEL] Mencoba memuat model Keras (.h5) dari: {MODEL_PATH_H5}")
@@ -83,7 +95,7 @@ def load_model():
         except Exception as e:
             print(f"[MODEL] Gagal memuat .h5: {e}")
 
-    # 2. Fallback ke .tflite jika .h5 tidak ada atau gagal
+    # 3. Fallback ke .tflite jika kedua format di atas gagal
     if os.path.exists(MODEL_PATH_TFLITE):
         try:
             print(f"[MODEL] Mencoba memuat model TFLite dari: {MODEL_PATH_TFLITE}")
