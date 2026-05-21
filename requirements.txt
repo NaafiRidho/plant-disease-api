@@ -15,7 +15,7 @@ psycopg2-binary==2.9.12
 # tflite-runtime jauh lebih ringan dari tensorflow (~30MB vs ~500MB)
 # Cocok untuk Render free tier (RAM 512MB)
 tflite-runtime
-numpy
+numpy<2.0.0
 pillow
 
 # Utilities
