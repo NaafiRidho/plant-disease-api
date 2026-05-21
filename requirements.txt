@@ -12,7 +12,8 @@ alembic==1.18.4
 psycopg2-binary==2.9.12
 
 # ML & Image Processing
-tensorflow-cpu>=2.16.1
+# TF 2.15 = versi terakhir yang menggunakan Keras 2.x (kompatibel dengan model .h5 lama)
+tensorflow-cpu==2.15.1
 numpy
 pillow
 
