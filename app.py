@@ -58,9 +58,10 @@ swagger_template = {
     "consumes": ["application/json", "multipart/form-data"],
     "produces": ["application/json"],
     "tags": [
-        {"name": "Status",   "description": "Health check & server info"},
-        {"name": "Penyakit", "description": "Informasi kelas penyakit tanaman"},
-        {"name": "Prediksi", "description": "Deteksi penyakit dari gambar"},
+        {"name": "Status",           "description": "Health check & server info"},
+        {"name": "Penyakit",         "description": "Informasi kelas penyakit tanaman"},
+        {"name": "Prediksi",         "description": "Deteksi penyakit dari gambar"},
+        {"name": "Riwayat Deteksi",  "description": "Dashboard riwayat hasil deteksi penyakit"},
     ]
 }
 
@@ -107,10 +108,14 @@ START_TIME = time.time()
 from routes.status_routes import status_bp
 from routes.disease_routes import disease_bp
 from routes.predict_routes import predict_bp
+from routes.history_routes import history_bp
+from routes.detection_history_routes import detection_history_bp
 
 app.register_blueprint(status_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(predict_bp)
+app.register_blueprint(history_bp)
+app.register_blueprint(detection_history_bp)
 
 # Import model agar Flask-Migrate dapat mendeteksi tabel
 import models  # noqa: F401
