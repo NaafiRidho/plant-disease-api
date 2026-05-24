@@ -1,11 +1,12 @@
 import os
 import json
 import time
+from datetime import timedelta
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flasgger import Swagger
 from dotenv import load_dotenv
-from extensions import db, migrate
+from extensions import db, migrate, jwt
 
 # Load environment variables dari file .env
 load_dotenv()
@@ -25,9 +26,47 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'postgresql://postgres:p
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # nonaktifkan overhead tracking
 app.config['SQLALCHEMY_ECHO'] = os.environ.get('FLASK_DEBUG', 'False') == 'True'  # log SQL di mode debug
 
+# ─────────────────────────────────────────────────────────────────────────────
+# KONFIGURASI JWT
+# ─────────────────────────────────────────────────────────────────────────────
+
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'super-secret-key-ganti-di-produksi')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', 3600)))
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+
 # Inisialisasi ekstensi database
 db.init_app(app)
 migrate.init_app(app, db)
+jwt.init_app(app)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JWT BLACKLIST — Cek token yang sudah di-logout
+# ─────────────────────────────────────────────────────────────────────────────
+
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blacklist(jwt_header, jwt_payload):
+    from controllers.auth_controller import jwt_blacklist
+    return jwt_payload["jti"] in jwt_blacklist
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    from flask import jsonify
+    return jsonify({"error": "Token telah dinonaktifkan. Silakan login kembali.", "status": 401}), 401
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    from flask import jsonify
+    return jsonify({"error": "Token sudah kadaluarsa. Silakan login kembali.", "status": 401}), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    from flask import jsonify
+    return jsonify({"error": "Token tidak valid.", "status": 401}), 401
+
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    from flask import jsonify
+    return jsonify({"error": "Token tidak ditemukan. Sertakan Authorization header.", "status": 401}), 401
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SWAGGER / FLASGGER CONFIG
@@ -58,11 +97,20 @@ swagger_template = {
     "consumes": ["application/json", "multipart/form-data"],
     "produces": ["application/json"],
     "tags": [
+        {"name": "Auth",             "description": "Login, logout, register & token management"},
         {"name": "Status",           "description": "Health check & server info"},
         {"name": "Penyakit",         "description": "Informasi kelas penyakit tanaman"},
         {"name": "Prediksi",         "description": "Deteksi penyakit dari gambar"},
         {"name": "Riwayat Deteksi",  "description": "Dashboard riwayat hasil deteksi penyakit"},
-    ]
+    ],
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Masukkan token JWT dengan format: Bearer <token>"
+        }
+    }
 }
 
 swagger_config = {
@@ -108,12 +156,14 @@ START_TIME = time.time()
 from routes.status_routes import status_bp
 from routes.disease_routes import disease_bp
 from routes.predict_routes import predict_bp
+from routes.auth_routes import auth_bp
 from routes.history_routes import history_bp
 from routes.detection_history_routes import detection_history_bp
 
 app.register_blueprint(status_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(predict_bp)
+app.register_blueprint(auth_bp)
 app.register_blueprint(history_bp)
 app.register_blueprint(detection_history_bp)
 
