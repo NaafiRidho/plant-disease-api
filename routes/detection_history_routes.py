@@ -3,13 +3,17 @@ detection_history_routes.py
 ────────────────────────────
 Blueprint untuk endpoint riwayat deteksi penyakit tanaman.
 
+Semua endpoint dilindungi JWT — hanya user yang login yang bisa akses.
+Data yang dikembalikan hanya milik user yang sedang login.
+
 Endpoints:
-  GET /api/detection-histories          – list dengan pagination, search, filter, sort
-  GET /api/detection-histories/stats    – statistik ringkasan
-  GET /api/detection-histories/<id>     – detail satu record
+  GET /api/detection-histories          – list (milik user login)
+  GET /api/detection-histories/stats    – statistik (milik user login)
+  GET /api/detection-histories/<id>     – detail (hanya jika milik user login)
 """
 
 from flask import Blueprint
+from flask_jwt_extended import jwt_required
 from controllers import detection_history_controller as ctrl
 
 detection_history_bp = Blueprint('detection_history', __name__)
@@ -24,15 +28,19 @@ detection_history_bp = Blueprint('detection_history', __name__)
     methods=['GET'],
     strict_slashes=False,
 )
+@jwt_required()
 def get_stats():
     """Statistik Riwayat Deteksi.
     ---
     tags:
       - Riwayat Deteksi
-    summary: Statistik ringkasan seluruh riwayat deteksi
+    summary: Statistik ringkasan riwayat deteksi milik user yang login
+    security:
+      - Bearer: []
     description: >
-      Mengembalikan statistik agregat: total deteksi, jumlah sehat vs sakit,
-      breakdown per jenis tanaman, dan top-5 penyakit terbanyak.
+      Mengembalikan statistik agregat hanya untuk user yang sedang login:
+      total deteksi, jumlah sehat vs sakit, breakdown per jenis tanaman,
+      dan top-5 penyakit terbanyak.
     responses:
       200:
         description: Statistik berhasil diambil
@@ -91,27 +99,18 @@ def get_stats():
     methods=['GET'],
     strict_slashes=False,
 )
+@jwt_required()
 def get_list():
     """Daftar Riwayat Deteksi Penyakit.
     ---
     tags:
       - Riwayat Deteksi
-    summary: Ambil daftar riwayat deteksi dengan pagination, search, filter, dan sorting
+    summary: Ambil daftar riwayat deteksi milik user yang login
+    security:
+      - Bearer: []
     description: >
-      Mengembalikan daftar riwayat deteksi penyakit tanaman dari tabel detection_histories.
-
-
-      **Filter yang tersedia:**
-      - `search`     — cari di predicted_class, disease_name, filename, plant_type
-      - `plant_type` — filter jenis tanaman (Tomat, Kentang, Paprika)
-      - `is_healthy` — filter status: `true` / `false`
-      - `date_from`  — filter mulai tanggal (YYYY-MM-DD)
-      - `date_to`    — filter sampai tanggal (YYYY-MM-DD)
-
-
-      **Sorting:** `sort_by` + `order` (asc/desc).
-      Kolom yang bisa di-sort: id, filename, predicted_class, confidence,
-      plant_type, disease_name, is_healthy, created_at.
+      Mengembalikan daftar riwayat deteksi **milik user yang sedang login**.
+      Mendukung pagination, pencarian teks bebas, filter, dan sorting.
     parameters:
       - name: page
         in: query
@@ -251,12 +250,15 @@ def get_list():
     methods=['GET'],
     strict_slashes=False,
 )
+@jwt_required()
 def get_detail(detection_id: int):
     """Detail Riwayat Deteksi.
     ---
     tags:
       - Riwayat Deteksi
-    summary: Ambil detail satu riwayat deteksi berdasarkan ID
+    summary: Ambil detail satu riwayat deteksi berdasarkan ID (hanya milik user login)
+    security:
+      - Bearer: []
     parameters:
       - name: detection_id
         in: path

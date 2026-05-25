@@ -88,17 +88,22 @@ def save_detection(
 # Read — list dengan filter, search, sort, pagination
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_detection_list(params: dict) -> tuple:
+def get_detection_list(params: dict, current_user_id: int | None = None) -> tuple:
     """
     Query daftar DetectionHistory dengan filter, search, sort, dan pagination.
 
     Args:
-        params: Dict query params dari request.args.
+        params:          Dict query params dari request.args.
+        current_user_id: Jika diisi, hanya ambil data milik user tersebut.
 
     Returns:
         Tuple (pagination_object, filters_applied_dict)
     """
     query = DetectionHistory.query
+
+    # ── Filter by user (jika login) ───────────────────────────────────────────
+    if current_user_id is not None:
+        query = query.filter(DetectionHistory.user_id == current_user_id)
 
     # ── Search ────────────────────────────────────────────────────────────────
     search = params.get('search', '').strip()
@@ -185,47 +190,58 @@ def get_detection_by_id(detection_id: int) -> DetectionHistory | None:
 # Read — statistik
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_stats() -> dict:
+def get_stats(current_user_id: int | None = None) -> dict:
     """
-    Hitung statistik ringkasan seluruh riwayat deteksi.
+    Hitung statistik ringkasan riwayat deteksi.
+
+    Args:
+        current_user_id: Jika diisi, statistik hanya untuk user tersebut.
 
     Returns:
         Dict berisi total, total_healthy, total_diseased,
         plant_breakdown, dan top_diseases.
     """
-    total          = DetectionHistory.query.count()
-    total_healthy  = DetectionHistory.query.filter(DetectionHistory.is_healthy == True).count()   # noqa: E712
-    total_diseased = DetectionHistory.query.filter(DetectionHistory.is_healthy == False).count()  # noqa: E712
+    base_query = DetectionHistory.query
+    if current_user_id is not None:
+        base_query = base_query.filter(DetectionHistory.user_id == current_user_id)
+
+    total          = base_query.count()
+    total_healthy  = base_query.filter(DetectionHistory.is_healthy == True).count()   # noqa: E712
+    total_diseased = base_query.filter(DetectionHistory.is_healthy == False).count()  # noqa: E712
 
     # Breakdown per plant_type
-    plant_rows = (
+    plant_q = (
         db.session.query(
             DetectionHistory.plant_type,
             func.count(DetectionHistory.id).label('count'),
         )
         .group_by(DetectionHistory.plant_type)
-        .all()
     )
+    if current_user_id is not None:
+        plant_q = plant_q.filter(DetectionHistory.user_id == current_user_id)
+
     plant_breakdown = [
         {'plant_type': row.plant_type or 'Unknown', 'count': row.count}
-        for row in plant_rows
+        for row in plant_q.all()
     ]
 
     # Top-5 penyakit terbanyak (hanya yang sakit)
-    disease_rows = (
+    disease_q = (
         db.session.query(
             DetectionHistory.disease_name,
             func.count(DetectionHistory.id).label('count'),
         )
         .filter(DetectionHistory.is_healthy == False)   # noqa: E712
         .group_by(DetectionHistory.disease_name)
-        .order_by(desc(func.count(DetectionHistory.id)))
-        .limit(5)
-        .all()
     )
+    if current_user_id is not None:
+        disease_q = disease_q.filter(DetectionHistory.user_id == current_user_id)
+
+    disease_q = disease_q.order_by(desc(func.count(DetectionHistory.id))).limit(5)
+
     top_diseases = [
         {'disease_name': row.disease_name or 'Unknown', 'count': row.count}
-        for row in disease_rows
+        for row in disease_q.all()
     ]
 
     return {

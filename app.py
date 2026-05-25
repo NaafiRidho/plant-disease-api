@@ -157,14 +157,12 @@ from routes.status_routes import status_bp
 from routes.disease_routes import disease_bp
 from routes.predict_routes import predict_bp
 from routes.auth_routes import auth_bp
-from routes.history_routes import history_bp
 from routes.detection_history_routes import detection_history_bp
 
 app.register_blueprint(status_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(predict_bp)
 app.register_blueprint(auth_bp)
-app.register_blueprint(history_bp)
 app.register_blueprint(detection_history_bp)
 
 # Import model agar Flask-Migrate dapat mendeteksi tabel

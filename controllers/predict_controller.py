@@ -14,12 +14,27 @@ Alur:
 import time
 
 from flask import request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from utils.image_validator import validate_image_file, ImageValidationError
 from utils.model_utils import predict_image
 from utils.response_helper import error, server_error
 from services import detection_history_service as history_svc
 from flask import jsonify
+
+
+def _get_optional_user_id() -> int | None:
+    """
+    Coba ambil user_id dari JWT Authorization header secara opsional.
+    Tidak raise error jika tidak ada token (guest request).
+    Menggunakan flask_jwt_extended agar konsisten dengan konfigurasi JWT app.
+    """
+    try:
+        verify_jwt_in_request(optional=True)
+        identity = get_jwt_identity()
+        return int(identity) if identity else None
+    except Exception:
+        return None
 
 
 def predict(disease_info: dict):
@@ -114,7 +129,7 @@ def predict(disease_info: dict):
             is_healthy      = is_healthy,
             ip_address      = request.remote_addr,
             top_3           = top_3_enriched,
-            user_id         = None,  # isi setelah auth diimplementasi
+            user_id         = _get_optional_user_id(),  # None jika guest, int jika login
         )
         response_body["detection_id"] = record.id
 

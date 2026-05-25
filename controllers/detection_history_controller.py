@@ -3,16 +3,12 @@ detection_history_controller.py
 ────────────────────────────────
 Controller untuk endpoint riwayat deteksi penyakit tanaman.
 
-Tanggung jawab controller:
-  - Parse dan validasi query params dari HTTP request
-  - Memanggil service layer untuk business logic
-  - Membangun HTTP response menggunakan response_helper
-
-Business logic (query, filter, DB) ada di:
-  services/detection_history_service.py
+Semua endpoint memerlukan JWT (login). Data yang dikembalikan
+hanya milik user yang sedang login (filter by user_id).
 """
 
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from services import detection_history_service as svc
 from utils.response_helper import (
@@ -24,29 +20,31 @@ from utils.response_helper import (
 )
 
 
+def _current_user_id() -> int:
+    """Ambil user_id (int) dari JWT identity."""
+    return int(get_jwt_identity())
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # GET /api/detection-histories
 # ─────────────────────────────────────────────────────────────────────────────
 
+@jwt_required()
 def get_list():
     """
-    Mengembalikan daftar riwayat deteksi dengan pagination, search,
-    filter, dan sorting.
+    Mengembalikan daftar riwayat deteksi milik user yang sedang login.
 
-    Query params yang didukung:
-        page        (int, default 1)
-        per_page    (int, default 10, max 100)
-        search      (str)  – cari di predicted_class, disease_name, filename, plant_type
-        plant_type  (str)  – filter jenis tanaman (case-insensitive)
-        is_healthy  (str)  – 'true' | 'false' | '1' | '0'
-        date_from   (str)  – ISO date: 'YYYY-MM-DD' atau 'YYYY-MM-DDTHH:MM:SS'
-        date_to     (str)  – ISO date: 'YYYY-MM-DD' atau 'YYYY-MM-DDTHH:MM:SS'
-        sort_by     (str)  – kolom sorting (default: created_at)
-        order       (str)  – 'asc' | 'desc' (default: desc)
+    Query params:
+        page, per_page, search, plant_type, is_healthy,
+        date_from, date_to, sort_by, order
     """
     try:
-        params = request.args.to_dict()
-        pagination, filters_applied = svc.get_detection_list(params)
+        user_id = _current_user_id()
+        params  = request.args.to_dict()
+
+        pagination, filters_applied = svc.get_detection_list(
+            params, current_user_id=user_id
+        )
 
         data = [item.to_list_dict() for item in pagination.items]
         meta = build_pagination_meta(pagination)
@@ -61,18 +59,23 @@ def get_list():
 # GET /api/detection-histories/<id>
 # ─────────────────────────────────────────────────────────────────────────────
 
+@jwt_required()
 def get_detail(detection_id: int):
     """
-    Mengembalikan detail satu riwayat deteksi berdasarkan ID.
-    Menyertakan disease_info lengkap dan top_3 predictions.
+    Mengembalikan detail satu riwayat deteksi.
+    Hanya bisa diakses jika record milik user yang sedang login.
     """
     try:
-        record = svc.get_detection_by_id(detection_id)
+        user_id = _current_user_id()
+        record  = svc.get_detection_by_id(detection_id)
 
         if record is None:
             return not_found("DetectionHistory", detection_id)
 
-        # Ambil disease_info dari app context (di-load saat startup)
+        # Pastikan record milik user yang login
+        if record.user_id != user_id:
+            return not_found("DetectionHistory", detection_id)
+
         from app import DISEASE_INFO
         data = record.to_detail_dict(disease_info=DISEASE_INFO)
 
@@ -86,13 +89,14 @@ def get_detail(detection_id: int):
 # GET /api/detection-histories/stats
 # ─────────────────────────────────────────────────────────────────────────────
 
+@jwt_required()
 def get_stats():
     """
-    Mengembalikan statistik ringkasan riwayat deteksi:
-    total, sehat vs sakit, breakdown per tanaman, top-5 penyakit.
+    Statistik riwayat deteksi milik user yang sedang login.
     """
     try:
-        stats = svc.get_stats()
+        user_id = _current_user_id()
+        stats   = svc.get_stats(current_user_id=user_id)
         return success(stats)
 
     except Exception as exc:
