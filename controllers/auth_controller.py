@@ -8,12 +8,8 @@ from flask_jwt_extended import (
 )
 from extensions import db
 from models.user import User
+from models.token_blocklist import TokenBlocklist
 from datetime import datetime, timezone
-
-
-# Set untuk menyimpan token yang sudah di-blacklist (logout)
-# Catatan: Untuk produksi, gunakan Redis atau database
-jwt_blacklist = set()
 
 
 def register():
@@ -97,9 +93,17 @@ def login():
 
 @jwt_required()
 def logout():
-    """Logout pengguna dengan memasukkan token ke blacklist."""
-    jti = get_jwt()["jti"]  # JWT ID unik dari token saat ini
-    jwt_blacklist.add(jti)
+    """Logout pengguna dengan menyimpan JTI token ke tabel blocklist di database."""
+    jti = get_jwt()["jti"]
+
+    # Simpan JTI ke database — persisten antar restart server
+    try:
+        record = TokenBlocklist(jti=jti)
+        db.session.add(record)
+        db.session.commit()
+    except Exception:
+        # Jika JTI sudah ada (duplicate), abaikan
+        db.session.rollback()
 
     return jsonify({
         "message": "Logout berhasil. Token telah dinonaktifkan.",
@@ -111,7 +115,7 @@ def logout():
 def refresh_token():
     """Memperbarui access token menggunakan refresh token."""
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, int(user_id))  # SQLAlchemy 2.0 style
 
     if not user or not user.is_active:
         return jsonify({"error": "User tidak ditemukan atau tidak aktif", "status": 404}), 404
@@ -132,7 +136,7 @@ def refresh_token():
 def get_profile():
     """Mendapatkan data profil pengguna yang sedang login."""
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = db.session.get(User, int(user_id))  # SQLAlchemy 2.0 style
 
     if not user:
         return jsonify({"error": "User tidak ditemukan", "status": 404}), 404

@@ -46,6 +46,7 @@ def save_detection(
     ip_address: str | None,
     top_3: list | None = None,
     user_id: int | None = None,
+    image_url: str | None = None,
 ) -> DetectionHistory:
     """
     Simpan satu record deteksi ke database.
@@ -60,6 +61,7 @@ def save_detection(
         ip_address:      IP address pengirim request.
         top_3:           List top-3 prediksi (akan di-encode ke JSON).
         user_id:         ID user jika sudah login (opsional).
+        image_url:       URL Cloudinary dari gambar scan (opsional).
 
     Returns:
         Instance DetectionHistory yang sudah di-commit.
@@ -76,6 +78,7 @@ def save_detection(
         is_healthy      = is_healthy,
         ip_address      = ip_address,
         user_id         = user_id,
+        image_url       = image_url,
     )
     record.top_3 = top_3 or []
 

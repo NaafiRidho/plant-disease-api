@@ -215,9 +215,9 @@ def predict_image(image_bytes: bytes) -> dict:
 def _mock_prediction() -> dict:
     """Prediksi mock ketika model belum ditraining."""
     import random
-    
-    # Simulasi prediksi random untuk demo
-    random.seed(42)
+
+    # Gunakan seed acak agar setiap panggilan menghasilkan prediksi berbeda
+    # (seed(42) dihapus karena menyebabkan prediksi identik setiap saat)
     mock_classes = random.sample(DEFAULT_CLASS_LABELS, 3)
     confidences = sorted([random.uniform(0.3, 0.95) for _ in range(3)], reverse=True)
     

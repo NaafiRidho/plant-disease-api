@@ -19,8 +19,10 @@ from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from utils.image_validator import validate_image_file, ImageValidationError
 from utils.model_utils import predict_image
 from utils.response_helper import error, server_error
+from utils.cloudinary_utils import upload_image_to_cloudinary
 from services import detection_history_service as history_svc
 from flask import jsonify
+
 
 
 def _get_optional_user_id() -> int | None:
@@ -119,6 +121,12 @@ def predict(disease_info: dict):
     # ── 4. Simpan ke detection_histories ─────────────────────────────────────
     try:
         is_healthy = d_info.get('status', '').lower() == 'sehat'
+        user_id = _get_optional_user_id()
+        image_url = None
+
+        # Hanya upload ke Cloudinary jika user login (mengurangi request tak perlu untuk guest)
+        if user_id is not None:
+            image_url = upload_image_to_cloudinary(image_bytes, file.filename or "scan.jpg")
 
         record = history_svc.save_detection(
             filename        = file.filename or None,
@@ -129,9 +137,13 @@ def predict(disease_info: dict):
             is_healthy      = is_healthy,
             ip_address      = request.remote_addr,
             top_3           = top_3_enriched,
-            user_id         = _get_optional_user_id(),  # None jika guest, int jika login
+            user_id         = user_id,
+            image_url       = image_url,
         )
         response_body["detection_id"] = record.id
+        if image_url:
+            response_body["image_url"] = image_url
+
 
     except Exception as db_exc:
         # DB error tidak menggagalkan response prediksi

@@ -6,7 +6,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flasgger import Swagger
 from dotenv import load_dotenv
-from extensions import db, migrate, jwt
+from extensions import db, migrate, jwt, limiter
 
 # Load environment variables dari file .env
 load_dotenv()
@@ -38,15 +38,18 @@ app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 db.init_app(app)
 migrate.init_app(app, db)
 jwt.init_app(app)
+limiter.init_app(app)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# JWT BLACKLIST — Cek token yang sudah di-logout
+# JWT BLOCKLIST — Cek token yang sudah di-logout (DB-persisted)
 # ─────────────────────────────────────────────────────────────────────────────
 
 @jwt.token_in_blocklist_loader
 def check_if_token_in_blacklist(jwt_header, jwt_payload):
-    from controllers.auth_controller import jwt_blacklist
-    return jwt_payload["jti"] in jwt_blacklist
+    """Cek JTI token di tabel token_blocklist. Persisten antar restart server."""
+    from models.token_blocklist import TokenBlocklist
+    jti = jwt_payload["jti"]
+    return db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar() is not None
 
 @jwt.revoked_token_loader
 def revoked_token_callback(jwt_header, jwt_payload):
@@ -201,6 +204,16 @@ if __name__ == '__main__':
     print("  Sistem Pendeteksi Penyakit Tanaman - Flask Backend")
     print("=" * 60)
     print(f"[INFO] Disease info: {len(DISEASE_INFO)} kelas terdaftar")
+
+    # ── Pre-load model ML saat startup ───────────────────────────────────────
+    # Menghindari cold start lambat pada request inferensi pertama
+    print("[INFO] Memuat model ML...")
+    from utils.model_utils import load_model
+    with app.app_context():
+        model_loaded = load_model()
+        status_str = 'terlatih (real)' if model_loaded else 'mode mock aktif'
+        print(f"[INFO] Model status: {status_str}")
+
     print(f"[INFO] Server berjalan di: http://localhost:5000")
     print("=" * 60)
 

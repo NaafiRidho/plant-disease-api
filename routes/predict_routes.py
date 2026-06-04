@@ -1,10 +1,12 @@
 from flask import Blueprint
 from controllers import predict_controller
+from extensions import limiter
 
 predict_bp = Blueprint('predict', __name__)
 
 
 @predict_bp.route('/api/predict', methods=['POST'], strict_slashes=False)
+@limiter.limit("10 per minute")
 def predict():
     """Deteksi Penyakit dari Gambar.
     ---
@@ -15,6 +17,9 @@ def predict():
       Endpoint utama sistem. Upload gambar daun tanaman (JPG/PNG/WEBP),
       model AI akan menganalisis dan mengembalikan prediksi penyakit
       beserta confidence score (top-3) dan informasi penyakit lengkap.
+
+
+      **Rate limit:** 10 request per menit per IP address.
 
 
       **Catatan:** Jika model belum ditraining, sistem akan berjalan dalam

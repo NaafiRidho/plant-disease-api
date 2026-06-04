@@ -19,6 +19,7 @@ class DetectionHistory(db.Model):
     disease_name    = db.Column(db.String(100), nullable=True)
     is_healthy      = db.Column(db.Boolean, nullable=False, default=False)
     ip_address      = db.Column(db.String(50), nullable=True)
+    image_url       = db.Column(db.String(500), nullable=True)      # URL Cloudinary gambar scan
     top_3_json      = db.Column(db.Text, nullable=True)             # JSON string top-3 predictions
     user_id         = db.Column(
         db.Integer,
@@ -82,6 +83,7 @@ class DetectionHistory(db.Model):
             'disease_name':      self.disease_name,
             'is_healthy':        self.is_healthy,
             'ip_address':        self.ip_address,
+            'image_url':         self.image_url,
             'user_id':           self.user_id,
             'created_at':        self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
         }
@@ -105,6 +107,7 @@ class DetectionHistory(db.Model):
             'disease_name':      self.disease_name,
             'is_healthy':        self.is_healthy,
             'ip_address':        self.ip_address,
+            'image_url':         self.image_url,
             'user_id':           self.user_id,
             'created_at':        self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
             'disease_info':      d_info or None,
