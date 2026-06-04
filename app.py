@@ -171,6 +171,17 @@ app.register_blueprint(detection_history_bp)
 # Import model agar Flask-Migrate dapat mendeteksi tabel
 import models  # noqa: F401
 
+# Jalankan migrasi database otomatis saat startup (sangat berguna untuk deploy Render)
+from flask_migrate import upgrade as flask_db_upgrade
+with app.app_context():
+    try:
+        print("[INFO] Menjalankan migrasi database otomatis...")
+        flask_db_upgrade()
+        print("[INFO] Migrasi database berhasil disinkronisasi.")
+    except Exception as e:
+        print(f"[WARNING] Gagal menjalankan migrasi otomatis: {e}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ERROR HANDLERS
 # ─────────────────────────────────────────────────────────────────────────────
