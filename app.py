@@ -175,6 +175,13 @@ import models  # noqa: F401
 from flask_migrate import upgrade as flask_db_upgrade
 with app.app_context():
     try:
+        print("[INFO] Menjalankan db.create_all() untuk membuat tabel baru yang belum ada...")
+        db.create_all()
+        print("[INFO] db.create_all() selesai.")
+    except Exception as e:
+        print(f"[WARNING] Gagal db.create_all(): {e}")
+
+    try:
         print("[INFO] Menjalankan migrasi database otomatis...")
         flask_db_upgrade()
         print("[INFO] Migrasi database berhasil disinkronisasi.")
