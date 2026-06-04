@@ -22,7 +22,7 @@ from utils.response_helper import error, server_error
 from utils.cloudinary_utils import upload_image_to_cloudinary
 from services import detection_history_service as history_svc
 from flask import jsonify
-
+from extensions import db
 
 
 def _get_optional_user_id() -> int | None:
@@ -36,7 +36,9 @@ def _get_optional_user_id() -> int | None:
         identity = get_jwt_identity()
         return int(identity) if identity else None
     except Exception:
+        db.session.rollback()
         return None
+
 
 
 def predict(disease_info: dict):
@@ -146,6 +148,7 @@ def predict(disease_info: dict):
 
 
     except Exception as db_exc:
+        db.session.rollback()
         # DB error tidak menggagalkan response prediksi
         response_body["log_warning"] = (
             f"Prediksi berhasil, namun gagal menyimpan riwayat: {db_exc}"
