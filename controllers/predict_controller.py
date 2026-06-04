@@ -35,7 +35,9 @@ def _get_optional_user_id() -> int | None:
         verify_jwt_in_request(optional=True)
         identity = get_jwt_identity()
         return int(identity) if identity else None
-    except Exception:
+    except Exception as e:
+        import sys
+        print(f"[JWT Debug] Verification failed or skipped: {e}", file=sys.stderr)
         db.session.rollback()
         return None
 
@@ -126,9 +128,14 @@ def predict(disease_info: dict):
         user_id = _get_optional_user_id()
         image_url = None
 
+        import sys
+        print(f"[Cloudinary Debug] parsed user_id: {user_id}", file=sys.stderr)
+
         # Hanya upload ke Cloudinary jika user login (mengurangi request tak perlu untuk guest)
         if user_id is not None:
+            print(f"[Cloudinary Debug] Starting image upload...", file=sys.stderr)
             image_url = upload_image_to_cloudinary(image_bytes, file.filename or "scan.jpg")
+            print(f"[Cloudinary Debug] Upload completed, URL: {image_url}", file=sys.stderr)
 
         record = history_svc.save_detection(
             filename        = file.filename or None,

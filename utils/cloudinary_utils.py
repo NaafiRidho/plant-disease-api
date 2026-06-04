@@ -10,6 +10,8 @@ CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 API_KEY = os.getenv("CLOUDINARY_API_KEY")
 API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
+import sys
+
 if CLOUD_NAME and API_KEY and API_SECRET:
     cloudinary.config(
         cloud_name=CLOUD_NAME,
@@ -19,6 +21,7 @@ if CLOUD_NAME and API_KEY and API_SECRET:
     )
     logger.info("Cloudinary configured successfully.")
 else:
+    print("[Cloudinary Config Warning] Credentials are not completely configured in environment variables.", file=sys.stderr)
     logger.warning("Cloudinary credentials are not completely configured in environment variables.")
 
 
@@ -35,6 +38,7 @@ def upload_image_to_cloudinary(image_bytes: bytes, filename: str, folder: str = 
         The secure URL of the uploaded image if successful, otherwise None.
     """
     if not (CLOUD_NAME and API_KEY and API_SECRET):
+        print("[Cloudinary Error] Cannot upload: Cloudinary is not configured.", file=sys.stderr)
         logger.error("Cloudinary is not configured. Skipping upload.")
         return None
 
@@ -50,5 +54,6 @@ def upload_image_to_cloudinary(image_bytes: bytes, filename: str, folder: str = 
         )
         return response.get("secure_url")
     except Exception as e:
+        print(f"[Cloudinary Error] Failed to upload image: {e}", file=sys.stderr)
         logger.error(f"Failed to upload image to Cloudinary: {e}")
         return None
