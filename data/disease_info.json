@@ -1,6 +1,7 @@
 {
   "Pepper__bell___Bacterial_spot": {
     "name_id": "Bercak Bakteri pada Paprika",
+    "scientific_name": "Capsicum annuum",
     "plant": "Paprika",
     "status": "Sakit",
     "description": "Penyakit bercak bakteri yang disebabkan oleh Xanthomonas campestris pv. vesicatoria. Merupakan salah satu penyakit paling merusak pada tanaman paprika dan tomat.",
@@ -22,6 +23,7 @@
   },
   "Pepper__bell___healthy": {
     "name_id": "Paprika Sehat",
+    "scientific_name": "Capsicum annuum",
     "plant": "Paprika",
     "status": "Sehat",
     "description": "Tanaman paprika dalam kondisi sehat dengan daun yang segar dan berwarna hijau cerah tanpa tanda-tanda penyakit.",
@@ -42,6 +44,7 @@
   },
   "Potato___Early_blight": {
     "name_id": "Hawar Awal Kentang",
+    "scientific_name": "Solanum tuberosum",
     "plant": "Kentang",
     "status": "Sakit",
     "description": "Penyakit jamur yang disebabkan oleh Alternaria solani. Menyerang daun tua terlebih dahulu sebelum menyebar ke daun muda.",
@@ -63,6 +66,7 @@
   },
   "Potato___Late_blight": {
     "name_id": "Hawar Akhir Kentang",
+    "scientific_name": "Solanum tuberosum",
     "plant": "Kentang",
     "status": "Sakit",
     "description": "Penyakit paling destruktif pada kentang yang disebabkan oleh Phytophthora infestans. Penyakit ini yang menyebabkan bencana kelaparan besar di Irlandia pada abad ke-19.",
@@ -84,6 +88,7 @@
   },
   "Potato___healthy": {
     "name_id": "Kentang Sehat",
+    "scientific_name": "Solanum tuberosum",
     "plant": "Kentang",
     "status": "Sehat",
     "description": "Tanaman kentang dalam kondisi prima dengan dedaunan hijau lebat dan pertumbuhan yang optimal.",
@@ -104,6 +109,7 @@
   },
   "Tomato_Bacterial_spot": {
     "name_id": "Bercak Bakteri pada Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Penyakit bakteri yang disebabkan oleh Xanthomonas perforans. Sangat umum di daerah tropis yang lembab dan hangat.",
@@ -125,6 +131,7 @@
   },
   "Tomato_Early_blight": {
     "name_id": "Hawar Awal Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Penyakit jamur oleh Alternaria solani yang dimulai dari daun-daun tua di bagian bawah tanaman.",
@@ -146,6 +153,7 @@
   },
   "Tomato_Late_blight": {
     "name_id": "Hawar Akhir Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Penyakit serius yang disebabkan oleh Phytophthora infestans, sama dengan hawar akhir kentang. Menyebar sangat cepat dalam kondisi dingin dan lembab.",
@@ -167,6 +175,7 @@
   },
   "Tomato_Leaf_Mold": {
     "name_id": "Kapang Daun Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Disebabkan oleh jamur Passalora fulva (Fulvia fulva). Paling umum terjadi pada tomat yang ditanam di dalam rumah kaca dengan kelembaban tinggi.",
@@ -188,6 +197,7 @@
   },
   "Tomato_Septoria_leaf_spot": {
     "name_id": "Bercak Septoria pada Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Penyakit jamur yang disebabkan oleh Septoria lycopersici. Salah satu penyakit daun tomat yang paling umum di seluruh dunia.",
@@ -209,6 +219,7 @@
   },
   "Tomato_Spider_mites_Two_spotted_spider_mite": {
     "name_id": "Tungau Merah pada Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Serangan tungau dua titik (Tetranychus urticae), yang merupakan hama utama tomat. Berkembang pesat saat cuaca panas dan kering.",
@@ -230,6 +241,7 @@
   },
   "Tomato__Target_Spot": {
     "name_id": "Bercak Target pada Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Penyakit jamur yang disebabkan oleh Corynespora cassiicola. Sering ditemukan pada tomat di daerah tropis dan subtropis.",
@@ -251,6 +263,7 @@
   },
   "Tomato__Tomato_YellowLeaf__Curl_Virus": {
     "name_id": "Virus Keriting Daun Kuning Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Disebabkan oleh Tomato yellow leaf curl virus (TYLCV) yang ditularkan oleh kutu kebul (Bemisia tabaci). Merupakan ancaman serius bagi budidaya tomat.",
@@ -272,6 +285,7 @@
   },
   "Tomato__Tomato_mosaic_virus": {
     "name_id": "Virus Mosaik Tomat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sakit",
     "description": "Disebabkan oleh Tomato mosaic virus (ToMV). Menyebar melalui kontak langsung, alat pertanian, dan tangan. Sangat stabil dan dapat bertahan lama.",
@@ -293,6 +307,7 @@
   },
   "Tomato_healthy": {
     "name_id": "Tomat Sehat",
+    "scientific_name": "Solanum lycopersicum",
     "plant": "Tomat",
     "status": "Sehat",
     "description": "Tanaman tomat dalam kondisi optimal dengan pertumbuhan yang baik, daun hijau segar, dan tidak ada tanda-tanda penyakit.",

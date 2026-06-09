@@ -9,6 +9,7 @@ Data yang dikembalikan hanya milik user yang sedang login.
 Endpoints:
   GET /api/detection-histories          – list (milik user login)
   GET /api/detection-histories/stats    – statistik (milik user login)
+  GET /api/detection-histories/trend    – tren chart (weekly/monthly/yearly)
   GET /api/detection-histories/<id>     – detail (hanya jika milik user login)
 """
 
@@ -88,6 +89,126 @@ def get_stats():
         description: Kesalahan server
     """
     return ctrl.get_stats()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Trend chart — didefinisikan SEBELUM /<int:id> agar tidak salah routing
+# ─────────────────────────────────────────────────────────────────────────────
+
+@detection_history_bp.route(
+    '/api/detection-histories/trend',
+    methods=['GET'],
+    strict_slashes=False,
+)
+@jwt_required()
+def get_trend():
+    """Tren Deteksi Penyakit (Dashboard Chart).
+    ---
+    tags:
+      - Riwayat Deteksi
+    summary: Data tren deteksi untuk chart dashboard dengan toggle periodik
+    security:
+      - Bearer: []
+    description: >
+      Mengembalikan data tren deteksi yang siap dipakai sebagai dataset chart
+      (line chart / bar chart). Mendukung 3 mode periode yang bisa di-toggle
+      oleh user di dashboard:
+
+
+      - **weekly**  — 7 hari terakhir, bucket per hari (label: "Jun 09")
+
+      - **monthly** — 12 bulan terakhir, bucket per bulan (label: "Jun 2026")
+
+      - **yearly**  — 5 tahun terakhir, bucket per tahun (label: "2026")
+
+
+      Setiap bucket berisi total deteksi, jumlah sehat, dan jumlah sakit.
+      Bucket yang tidak ada datanya tetap dikembalikan dengan nilai 0
+      sehingga chart tidak ada lubang.
+    parameters:
+      - name: period
+        in: query
+        type: string
+        required: false
+        default: monthly
+        enum: [weekly, monthly, yearly]
+        description: Periode waktu untuk agregasi tren
+    responses:
+      200:
+        description: Data tren berhasil diambil
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              properties:
+                period:
+                  type: string
+                  example: monthly
+                  enum: [weekly, monthly, yearly]
+                labels:
+                  type: array
+                  description: Label sumbu-X untuk chart (urut dari terlama ke terbaru)
+                  items:
+                    type: string
+                  example: ["Jul 2025", "Aug 2025", "Sep 2025", "Oct 2025",
+                            "Nov 2025", "Dec 2025", "Jan 2026", "Feb 2026",
+                            "Mar 2026", "Apr 2026", "May 2026", "Jun 2026"]
+                total:
+                  type: array
+                  description: Jumlah total deteksi per bucket
+                  items:
+                    type: integer
+                  example: [0, 2, 5, 3, 0, 8, 12, 7, 4, 0, 15, 29]
+                healthy:
+                  type: array
+                  description: Jumlah deteksi tanaman sehat per bucket
+                  items:
+                    type: integer
+                  example: [0, 1, 2, 1, 0, 3, 5, 2, 2, 0, 6, 10]
+                diseased:
+                  type: array
+                  description: Jumlah deteksi tanaman sakit per bucket
+                  items:
+                    type: integer
+                  example: [0, 1, 3, 2, 0, 5, 7, 5, 2, 0, 9, 19]
+                summary:
+                  type: object
+                  description: Ringkasan total dalam rentang periode tersebut
+                  properties:
+                    total:
+                      type: integer
+                      example: 85
+                    healthy:
+                      type: integer
+                      example: 32
+                    diseased:
+                      type: integer
+                      example: 53
+                    start_date:
+                      type: string
+                      example: "2025-07-01"
+                    end_date:
+                      type: string
+                      example: "2026-06-09"
+      400:
+        description: Parameter period tidak valid
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: string
+              example: "Parameter 'period' tidak valid. Gunakan: weekly, monthly, atau yearly."
+      500:
+        description: Kesalahan server
+    """
+    return ctrl.get_trend()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -183,25 +304,51 @@ def get_list():
                     example: Tomato_Late_blight
                   confidence:
                     type: number
-                    example: 0.98
+                    example: 0.9823
+                  confidence_value:
+                    type: number
+                    example: 98.23
+                    description: Nilai 0–100 untuk lebar progress bar di UI
                   confidence_percent:
                     type: string
-                    example: "98.0%"
+                    example: "98.23%"
                   plant_type:
                     type: string
                     example: Tomat
+                  scientific_name:
+                    type: string
+                    example: Solanum lycopersicum
+                    description: Nama latin tanaman untuk subtitle card UI
                   disease_name:
                     type: string
                     example: Hawar Akhir Tomat
+                  severity:
+                    type: string
+                    example: Sangat Tinggi
+                    enum: [Tidak ada, Sedang, Tinggi, Sangat Tinggi]
                   is_healthy:
                     type: boolean
                     example: false
-                  ip_address:
+                  display_status:
                     type: string
-                    example: 127.0.0.1
+                    example: Health Alert
+                    enum: [Flourishing, Health Alert, Under Treatment]
+                    description: Label badge status untuk tampilan UI history card
+                  status_color:
+                    type: string
+                    example: "#ef4444"
+                    description: Warna hex untuk badge status di UI
+                  image_url:
+                    type: string
+                    example: "https://res.cloudinary.com/..."
+                    description: URL foto hasil scan dari Cloudinary
                   user_id:
                     type: integer
-                    example: null
+                    example: 1
+                  scanned_at:
+                    type: string
+                    example: "May 21, 10:00"
+                    description: Format tanggal ringkas untuk ditampilkan di UI card
                   created_at:
                     type: string
                     example: "2025-05-21 10:00:00"

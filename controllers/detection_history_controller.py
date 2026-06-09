@@ -101,3 +101,34 @@ def get_stats():
 
     except Exception as exc:
         return server_error(f"Gagal mengambil statistik: {exc}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /api/detection-histories/trend?period=weekly|monthly|yearly
+# ─────────────────────────────────────────────────────────────────────────────
+
+@jwt_required()
+def get_trend():
+    """
+    Tren deteksi penyakit berdasarkan periode waktu untuk dashboard chart.
+
+    Query param:
+        period: 'weekly' (7 hari) | 'monthly' (12 bulan) | 'yearly' (5 tahun)
+                Default: 'monthly'
+    """
+    try:
+        user_id = _current_user_id()
+        period  = request.args.get('period', 'monthly').strip().lower()
+
+        if period not in ('weekly', 'monthly', 'yearly'):
+            from utils.response_helper import error
+            return error(
+                "Parameter 'period' tidak valid. Gunakan: weekly, monthly, atau yearly.",
+                400,
+            )
+
+        data = svc.get_trend(period=period, current_user_id=user_id)
+        return success(data)
+
+    except Exception as exc:
+        return server_error(f"Gagal mengambil data tren: {exc}")

@@ -41,7 +41,9 @@ def save_detection(
     predicted_class: str,
     confidence: float,
     plant_type: str | None,
+    scientific_name: str | None,
     disease_name: str | None,
+    severity: str | None,
     is_healthy: bool,
     ip_address: str | None,
     top_3: list | None = None,
@@ -56,7 +58,9 @@ def save_detection(
         predicted_class: Kelas prediksi terbaik.
         confidence:      Confidence score (0.0–1.0).
         plant_type:      Jenis tanaman (dari disease_info.plant).
+        scientific_name: Nama latin tanaman (dari disease_info.scientific_name).
         disease_name:    Nama penyakit (dari disease_info.name_id).
+        severity:        Tingkat keparahan (dari disease_info.severity).
         is_healthy:      True jika tanaman sehat.
         ip_address:      IP address pengirim request.
         top_3:           List top-3 prediksi (akan di-encode ke JSON).
@@ -74,7 +78,9 @@ def save_detection(
         predicted_class = predicted_class,
         confidence      = confidence,
         plant_type      = plant_type,
+        scientific_name = scientific_name,
         disease_name    = disease_name,
+        severity        = severity,
         is_healthy      = is_healthy,
         ip_address      = ip_address,
         user_id         = user_id,
@@ -187,6 +193,135 @@ def get_detection_by_id(detection_id: int) -> DetectionHistory | None:
         Instance DetectionHistory atau None jika tidak ditemukan.
     """
     return db.session.get(DetectionHistory, detection_id)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Read — tren chart (weekly / monthly / yearly)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def get_trend(period: str, current_user_id: int | None = None) -> dict:
+    """
+    Hitung tren deteksi berdasarkan periode waktu.
+
+    Args:
+        period:          'weekly' | 'monthly' | 'yearly'
+        current_user_id: Jika diisi, hanya data milik user tersebut.
+
+    Returns:
+        Dict berisi:
+            - period        : periode yang dipakai
+            - labels        : list label sumbu-X (string tanggal/minggu/bulan)
+            - total         : list jumlah total deteksi per bucket
+            - healthy       : list jumlah deteksi sehat per bucket
+            - diseased      : list jumlah deteksi sakit per bucket
+            - summary       : ringkasan angka keseluruhan dalam rentang
+    """
+    from sqlalchemy import func, case
+
+    base_q = db.session.query(DetectionHistory)
+    if current_user_id is not None:
+        base_q = base_q.filter(DetectionHistory.user_id == current_user_id)
+
+    now = datetime.utcnow()
+
+    # ── Tentukan rentang waktu & fungsi grouping ──────────────────────────────
+    if period == 'weekly':
+        # 7 hari terakhir, bucket per hari
+        start_dt   = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        from datetime import timedelta
+        start_dt   = start_dt - timedelta(days=6)
+        trunc_expr = func.date_trunc('day', DetectionHistory.created_at)
+        label_fmt  = '%b %d'          # "Jun 09"
+        buckets    = [start_dt + timedelta(days=i) for i in range(7)]
+
+    elif period == 'monthly':
+        # 12 bulan terakhir, bucket per bulan
+        from datetime import timedelta
+        # Awal bulan 11 bulan yang lalu
+        start_dt   = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                      - timedelta(days=1))  # akhir bulan sebelumnya
+        # Mundur ke 12 bulan lalu
+        year  = now.year - (1 if now.month == 1 else 0)
+        month = now.month - 1 if now.month > 1 else 12
+        start_dt = now.replace(year=year if now.month > 1 else now.year - 1,
+                               month=month, day=1,
+                               hour=0, minute=0, second=0, microsecond=0)
+        trunc_expr = func.date_trunc('month', DetectionHistory.created_at)
+        label_fmt  = '%b %Y'          # "Jun 2026"
+        # Buat 12 bucket bulanan
+        buckets = []
+        for i in range(12):
+            m = (start_dt.month + i - 1) % 12 + 1
+            y = start_dt.year + (start_dt.month + i - 1) // 12
+            buckets.append(start_dt.replace(year=y, month=m, day=1))
+
+    else:  # yearly
+        # 5 tahun terakhir, bucket per tahun
+        from datetime import timedelta
+        start_dt   = now.replace(year=now.year - 4, month=1, day=1,
+                                 hour=0, minute=0, second=0, microsecond=0)
+        trunc_expr = func.date_trunc('year', DetectionHistory.created_at)
+        label_fmt  = '%Y'             # "2026"
+        buckets    = [start_dt.replace(year=start_dt.year + i) for i in range(5)]
+
+    # ── Query agregat per bucket ──────────────────────────────────────────────
+    rows = (
+        base_q
+        .filter(DetectionHistory.created_at >= start_dt)
+        .with_entities(
+            trunc_expr.label('bucket'),
+            func.count(DetectionHistory.id).label('total'),
+            func.sum(
+                case((DetectionHistory.is_healthy == True, 1), else_=0)   # noqa: E712
+            ).label('healthy'),
+            func.sum(
+                case((DetectionHistory.is_healthy == False, 1), else_=0)  # noqa: E712
+            ).label('diseased'),
+        )
+        .group_by('bucket')
+        .order_by('bucket')
+        .all()
+    )
+
+    # Buat dict lookup: bucket_datetime → row
+    row_map: dict = {}
+    for row in rows:
+        # date_trunc mengembalikan datetime — normalisasi ke awal periode
+        if period == 'weekly':
+            key = row.bucket.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == 'monthly':
+            key = row.bucket.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            key = row.bucket.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        row_map[key] = row
+
+    # ── Isi semua bucket (termasuk yang kosong = 0) ───────────────────────────
+    labels:   list[str] = []
+    totals:   list[int] = []
+    healthys: list[int] = []
+    diseaseds: list[int] = []
+
+    for bucket_dt in buckets:
+        labels.append(bucket_dt.strftime(label_fmt))
+        row = row_map.get(bucket_dt)
+        totals.append(int(row.total)   if row else 0)
+        healthys.append(int(row.healthy)  if row else 0)
+        diseaseds.append(int(row.diseased) if row else 0)
+
+    return {
+        'period':   period,
+        'labels':   labels,
+        'total':    totals,
+        'healthy':  healthys,
+        'diseased': diseaseds,
+        'summary': {
+            'total':    sum(totals),
+            'healthy':  sum(healthys),
+            'diseased': sum(diseaseds),
+            'start_date': start_dt.strftime('%Y-%m-%d'),
+            'end_date':   now.strftime('%Y-%m-%d'),
+        },
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
