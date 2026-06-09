@@ -7,7 +7,7 @@ Semua endpoint memerlukan JWT (login). Data yang dikembalikan
 hanya milik user yang sedang login (filter by user_id).
 """
 
-from flask import request
+from flask import request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from services import detection_history_service as svc
@@ -76,8 +76,7 @@ def get_detail(detection_id: int):
         if record.user_id != user_id:
             return not_found("DetectionHistory", detection_id)
 
-        from app import DISEASE_INFO
-        data = record.to_detail_dict(disease_info=DISEASE_INFO)
+        data = record.to_detail_dict(disease_info=current_app.config['DISEASE_INFO'])
 
         return success(data)
 

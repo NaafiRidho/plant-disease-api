@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import logging
 from datetime import timedelta
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -10,6 +11,9 @@ from extensions import db, migrate, jwt, limiter
 
 # Load environment variables dari file .env
 load_dotenv()
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 # Inisialisasi Flask app
 app = Flask(__name__)
@@ -30,7 +34,15 @@ app.config['SQLALCHEMY_ECHO'] = os.environ.get('FLASK_DEBUG', 'False') == 'True'
 # KONFIGURASI JWT
 # ─────────────────────────────────────────────────────────────────────────────
 
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'super-secret-key-ganti-di-produksi')
+# KEAMANAN: JWT_SECRET_KEY wajib diset via environment variable.
+# Tidak ada fallback hardcoded untuk mencegah penggunaan secret lemah di production.
+jwt_secret = os.environ.get('JWT_SECRET_KEY')
+if not jwt_secret:
+    raise RuntimeError(
+        "FATAL: JWT_SECRET_KEY belum diset di environment variable! "
+        "Tambahkan JWT_SECRET_KEY di file .env atau environment server."
+    )
+app.config['JWT_SECRET_KEY'] = jwt_secret
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', 3600)))
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 
@@ -133,24 +145,37 @@ swagger_config = {
 
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
-# CORS: Izinkan request dari frontend (Vercel & Localhost)
+# CORS: Hanya izinkan request dari origin yang terdaftar (whitelist)
+# Set ALLOWED_ORIGINS di .env, pisahkan dengan koma.
+# Contoh: ALLOWED_ORIGINS=https://plant-disease-frontend-seven.vercel.app,http://localhost:3000
+_default_origins = "http://localhost:3000,http://127.0.0.1:3000"
+_allowed_origins = [
+    origin.strip()
+    for origin in os.environ.get('ALLOWED_ORIGINS', _default_origins).split(',')
+    if origin.strip()
+]
 CORS(app, resources={
     r"/api/*": {
-        "origins": "*",  # Izinkan semua origin sementara untuk testing
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
+        "origins": _allowed_origins,
+        "methods": ["GET", "POST", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DATA & KONFIGURASI GLOBAL
+# Disimpan di app.config agar bisa diakses via current_app.config
+# tanpa circular import dari module lain.
 # ─────────────────────────────────────────────────────────────────────────────
 
 DISEASE_INFO_PATH = os.path.join(os.path.dirname(__file__), 'data', 'disease_info.json')
 with open(DISEASE_INFO_PATH, 'r', encoding='utf-8') as f:
     DISEASE_INFO = json.load(f)
 
+app.config['DISEASE_INFO'] = DISEASE_INFO
+
 START_TIME = time.time()
+app.config['START_TIME'] = START_TIME
 
 # ─────────────────────────────────────────────────────────────────────────────
 # REGISTER BLUEPRINTS (Routes)
@@ -175,18 +200,18 @@ import models  # noqa: F401
 from flask_migrate import upgrade as flask_db_upgrade
 with app.app_context():
     try:
-        print("[INFO] Menjalankan db.create_all() untuk membuat tabel baru yang belum ada...")
+        logger.info("Menjalankan db.create_all() untuk membuat tabel baru yang belum ada...")
         db.create_all()
-        print("[INFO] db.create_all() selesai.")
+        logger.info("db.create_all() selesai.")
     except Exception as e:
-        print(f"[WARNING] Gagal db.create_all(): {e}")
+        logger.warning("Gagal db.create_all(): %s", e)
 
     try:
-        print("[INFO] Menjalankan migrasi database otomatis...")
+        logger.info("Menjalankan migrasi database otomatis...")
         flask_db_upgrade()
-        print("[INFO] Migrasi database berhasil disinkronisasi.")
+        logger.info("Migrasi database berhasil disinkronisasi.")
     except Exception as e:
-        print(f"[WARNING] Gagal menjalankan migrasi otomatis: {e}")
+        logger.warning("Gagal menjalankan migrasi otomatis: %s", e)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

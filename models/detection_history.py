@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from extensions import db
 
 
@@ -48,7 +48,7 @@ class DetectionHistory(db.Model):
     created_at      = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         index=True,
     )
 

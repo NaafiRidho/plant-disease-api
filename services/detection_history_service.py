@@ -9,7 +9,7 @@ Memisahkan business logic dari controller sehingga:
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import request
 from sqlalchemy import asc, desc, or_, func
@@ -222,7 +222,7 @@ def get_trend(period: str, current_user_id: int | None = None) -> dict:
     if current_user_id is not None:
         base_q = base_q.filter(DetectionHistory.user_id == current_user_id)
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # ── Tentukan rentang waktu & fungsi grouping ──────────────────────────────
     if period == 'weekly':

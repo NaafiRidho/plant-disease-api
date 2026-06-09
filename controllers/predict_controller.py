@@ -12,8 +12,9 @@ Alur:
 """
 
 import time
+import logging
 
-from flask import request
+from flask import request, current_app
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from utils.image_validator import validate_image_file, ImageValidationError
@@ -23,6 +24,8 @@ from utils.cloudinary_utils import upload_image_to_cloudinary
 from services import detection_history_service as history_svc
 from flask import jsonify
 from extensions import db
+
+logger = logging.getLogger(__name__)
 
 
 def _get_optional_user_id() -> int | None:
@@ -36,8 +39,7 @@ def _get_optional_user_id() -> int | None:
         identity = get_jwt_identity()
         return int(identity) if identity else None
     except Exception as e:
-        import sys
-        print(f"[JWT Debug] Verification failed or skipped: {e}", file=sys.stderr)
+        logger.debug("JWT verification failed or skipped: %s", e)
         db.session.rollback()
         return None
 
@@ -128,14 +130,13 @@ def predict(disease_info: dict):
         user_id = _get_optional_user_id()
         image_url = None
 
-        import sys
-        print(f"[Cloudinary Debug] parsed user_id: {user_id}", file=sys.stderr)
+        logger.debug("Parsed user_id: %s", user_id)
 
         # Hanya upload ke Cloudinary jika user login (mengurangi request tak perlu untuk guest)
         if user_id is not None:
-            print(f"[Cloudinary Debug] Starting image upload...", file=sys.stderr)
+            logger.debug("Starting Cloudinary image upload...")
             image_url = upload_image_to_cloudinary(image_bytes, file.filename or "scan.jpg")
-            print(f"[Cloudinary Debug] Upload completed, URL: {image_url}", file=sys.stderr)
+            logger.debug("Upload completed, URL: %s", image_url)
 
         record = history_svc.save_detection(
             filename        = file.filename or None,

@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 from controllers import disease_controller
 
 disease_bp = Blueprint('disease', __name__)
@@ -48,8 +48,7 @@ def get_classes():
                     type: string
                     example: "#22c55e"
     """
-    from app import DISEASE_INFO
-    return disease_controller.get_classes(DISEASE_INFO)
+    return disease_controller.get_classes(current_app.config['DISEASE_INFO'])
 
 
 @disease_bp.route('/api/disease/<string:class_name>', methods=['GET'])
@@ -114,5 +113,4 @@ def get_disease_info(class_name: str):
               type: string
               example: Informasi penyakit 'xyz' tidak ditemukan
     """
-    from app import DISEASE_INFO
-    return disease_controller.get_disease_info(class_name, DISEASE_INFO)
+    return disease_controller.get_disease_info(class_name, current_app.config['DISEASE_INFO'])

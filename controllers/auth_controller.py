@@ -1,3 +1,4 @@
+import re
 from flask import jsonify, request
 from flask_jwt_extended import (
     create_access_token,
@@ -29,6 +30,16 @@ def register():
 
     if len(password) < 6:
         return jsonify({"error": "Password minimal 6 karakter", "status": 400}), 400
+
+    # Validasi kekuatan password
+    if not re.search(r'[A-Z]', password):
+        return jsonify({"error": "Password harus mengandung minimal 1 huruf besar", "status": 400}), 400
+
+    if not re.search(r'[a-z]', password):
+        return jsonify({"error": "Password harus mengandung minimal 1 huruf kecil", "status": 400}), 400
+
+    if not re.search(r'[0-9]', password):
+        return jsonify({"error": "Password harus mengandung minimal 1 angka", "status": 400}), 400
 
     # Cek apakah username atau email sudah terdaftar
     if User.query.filter_by(username=username).first():

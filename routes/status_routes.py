@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 from controllers import status_controller
 
 status_bp = Blueprint('status', __name__)
@@ -65,5 +65,4 @@ def health():
               type: string
               example: Server berjalan (model belum ditraining — mode mock aktif)
     """
-    from app import START_TIME
-    return status_controller.health(START_TIME)
+    return status_controller.health(current_app.config['START_TIME'])

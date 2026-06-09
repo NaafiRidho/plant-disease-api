@@ -1,11 +1,13 @@
 from flask import Blueprint
 from flask_jwt_extended import jwt_required
 from controllers import auth_controller
+from extensions import limiter
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
 @auth_bp.route('/register', methods=['POST'], strict_slashes=False)
+@limiter.limit("5 per minute")
 def register():
     """Registrasi pengguna baru.
     ---
@@ -57,6 +59,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['POST'], strict_slashes=False)
+@limiter.limit("10 per minute")
 def login():
     """Login dan dapatkan JWT Token.
     ---

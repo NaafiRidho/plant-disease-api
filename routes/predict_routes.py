@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 from controllers import predict_controller
 from extensions import limiter
 
@@ -120,5 +120,4 @@ def predict():
             error:
               type: string
     """
-    from app import DISEASE_INFO
-    return predict_controller.predict(DISEASE_INFO)
+    return predict_controller.predict(current_app.config['DISEASE_INFO'])
