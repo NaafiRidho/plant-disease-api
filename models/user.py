@@ -36,6 +36,7 @@ class User(db.Model):
             'username': self.username,
             'email': self.email,
             'role': self.role,
+            'is_active': self.is_active,
             'created_at': self.created_at.isoformat()
         }
 

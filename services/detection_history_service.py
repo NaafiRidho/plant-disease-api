@@ -247,24 +247,22 @@ def get_trend(period: str, current_user_id: int | None = None) -> dict:
 
     elif period == 'monthly':
         # 12 bulan terakhir, bucket per bulan
-        from datetime import timedelta
-        # Awal bulan 11 bulan yang lalu
-        start_dt   = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                      - timedelta(days=1))  # akhir bulan sebelumnya
-        # Mundur ke 12 bulan lalu
-        year  = now.year - (1 if now.month == 1 else 0)
-        month = now.month - 1 if now.month > 1 else 12
-        start_dt = now.replace(year=year if now.month > 1 else now.year - 1,
-                               month=month, day=1,
-                               hour=0, minute=0, second=0, microsecond=0)
-        trunc_expr = func.date_trunc('month', DetectionHistory.created_at)
-        label_fmt  = '%b'             # "Jan", "Feb", etc.
+        # Hitung awal bulan saat ini lalu mundur 11 bulan ke belakang
+        current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        # Mundur 11 bulan: gunakan aritmatika modulo aman tanpa dateutil
+        total_months = current_month_start.year * 12 + (current_month_start.month - 1) - 11
+        start_year   = total_months // 12
+        start_month  = total_months % 12 + 1
+        start_dt     = current_month_start.replace(year=start_year, month=start_month)
+        trunc_expr   = func.date_trunc('month', DetectionHistory.created_at)
+        label_fmt    = '%b %Y'        # "Jan 2026"
         # Buat 12 bucket bulanan
         buckets = []
         for i in range(12):
-            m = (start_dt.month + i - 1) % 12 + 1
-            y = start_dt.year + (start_dt.month + i - 1) // 12
-            buckets.append(start_dt.replace(year=y, month=m, day=1))
+            total_m = start_year * 12 + (start_month - 1) + i
+            b_year  = total_m // 12
+            b_month = total_m % 12 + 1
+            buckets.append(start_dt.replace(year=b_year, month=b_month, day=1))
 
     else:  # yearly
         # 5 tahun terakhir, bucket per tahun

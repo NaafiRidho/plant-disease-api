@@ -116,6 +116,7 @@ def login():
 
 
 @auth_bp.route('/logout', methods=['POST'], strict_slashes=False)
+@jwt_required()
 def logout():
     """Logout dan nonaktifkan token.
     ---
@@ -143,6 +144,7 @@ def logout():
 
 
 @auth_bp.route('/refresh', methods=['POST'], strict_slashes=False)
+@jwt_required(refresh=True)
 def refresh():
     """Refresh Access Token.
     ---
@@ -173,6 +175,7 @@ def refresh():
 
 
 @auth_bp.route('/profile', methods=['GET'], strict_slashes=False)
+@jwt_required()
 def profile():
     """Profil pengguna yang sedang login.
     ---
@@ -201,6 +204,7 @@ def profile():
 
 
 @auth_bp.route('/profile', methods=['PUT'], strict_slashes=False)
+@jwt_required()
 def update_profile():
     """Update profil pengguna yang sedang login.
     ---

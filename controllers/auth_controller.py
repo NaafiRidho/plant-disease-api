@@ -101,7 +101,6 @@ def login():
         "user": user.to_dict()
     }), 200
 
-@jwt_required()
 def logout():
     """Logout pengguna dengan menyimpan JTI token ke tabel blocklist di database."""
     jti = get_jwt()["jti"]
@@ -129,7 +128,6 @@ def logout():
 
 
 
-@jwt_required(refresh=True)
 def refresh_token():
     """Memperbarui access token menggunakan refresh token."""
     user_id = get_jwt_identity()
@@ -150,7 +148,6 @@ def refresh_token():
     }), 200
 
 
-@jwt_required()
 def get_profile():
     """Mendapatkan data profil pengguna yang sedang login."""
     user_id = get_jwt_identity()
@@ -165,7 +162,6 @@ def get_profile():
     }), 200
 
 
-@jwt_required()
 def update_profile():
     """Mengupdate profil pengguna yang sedang login."""
     user_id = get_jwt_identity()

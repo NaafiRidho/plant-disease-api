@@ -214,8 +214,16 @@ with app.app_context():
     except Exception as e:
         logger.warning("Gagal menjalankan migrasi otomatis: %s", e)
 
-
-
+    # ── Pre-load model ML saat startup ───────────────────────────────────────
+    # Di luar blok __main__ agar berjalan juga saat deploy via Gunicorn/uWSGI
+    try:
+        logger.info("Memuat model ML...")
+        from utils.model_utils import load_model
+        model_loaded = load_model()
+        status_str = 'terlatih (real)' if model_loaded else 'mode mock aktif'
+        logger.info("Model ML status: %s", status_str)
+    except Exception as e:
+        logger.warning("Gagal memuat model ML: %s", e)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ERROR HANDLERS
