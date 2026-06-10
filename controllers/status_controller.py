@@ -1,5 +1,5 @@
 import time
-from flask import jsonify
+from flask import jsonify, request
 from utils.model_utils import is_model_loaded, get_class_labels
 
 
@@ -8,7 +8,7 @@ def index():
     return jsonify({
         "message": "Sistem Pendeteksi Penyakit Tanaman API",
         "version": "1.0.0",
-        "docs": "http://localhost:5000/apidocs",
+        "docs": f"{request.host_url.rstrip('/')}/apidocs",
         "endpoints": {
             "health": "/api/health",
             "predict": "POST /api/predict",

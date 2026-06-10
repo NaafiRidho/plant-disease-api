@@ -106,9 +106,9 @@ swagger_template = {
             "name": "MIT"
         }
     },
-    "host": "localhost:5000",
+    "host": os.environ.get("SWAGGER_HOST", "localhost:5000"),
     "basePath": "/",
-    "schemes": ["http"],
+    "schemes": ["https", "http"] if os.environ.get("FLASK_ENV") == "production" else ["http"],
     "consumes": ["application/json", "multipart/form-data"],
     "produces": ["application/json"],
     "tags": [
@@ -259,14 +259,7 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"[INFO] Disease info: {len(DISEASE_INFO)} kelas terdaftar")
 
-    # ── Pre-load model ML saat startup ───────────────────────────────────────
-    # Menghindari cold start lambat pada request inferensi pertama
-    print("[INFO] Memuat model ML...")
-    from utils.model_utils import load_model
-    with app.app_context():
-        model_loaded = load_model()
-        status_str = 'terlatih (real)' if model_loaded else 'mode mock aktif'
-        print(f"[INFO] Model status: {status_str}")
+
 
     print(f"[INFO] Server berjalan di: http://localhost:5000")
     print("=" * 60)

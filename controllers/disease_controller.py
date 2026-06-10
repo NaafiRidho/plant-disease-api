@@ -12,6 +12,8 @@ def get_classes(disease_info: dict):
         classes.append({
             "class_key": label,
             "name_id": info.get("name_id", label),
+            "scientific_name": info.get("scientific_name", "Unknown"),
+            "description": info.get("description", ""),
             "plant": info.get("plant", "Unknown"),
             "status": info.get("status", "Unknown"),
             "severity": info.get("severity", "Unknown"),

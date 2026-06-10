@@ -28,6 +28,9 @@ def register():
     if not username or not email or not password:
         return jsonify({"error": "Username, email, dan password wajib diisi", "status": 400}), 400
 
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        return jsonify({"error": "Format email tidak valid", "status": 400}), 400
+
     if len(password) < 6:
         return jsonify({"error": "Password minimal 6 karakter", "status": 400}), 400
 
@@ -186,6 +189,8 @@ def update_profile():
     if 'email' in data:
         email = data['email'].strip().lower()
         if email and email != user.email:
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                return jsonify({"error": "Format email tidak valid", "status": 400}), 400
             if User.query.filter_by(email=email).first():
                 return jsonify({"error": "Email sudah terdaftar", "status": 409}), 409
             user.email = email
