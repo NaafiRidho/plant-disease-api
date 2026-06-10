@@ -506,3 +506,36 @@ def get_detail(detection_id: int):
         description: Kesalahan server
     """
     return ctrl.get_detail(detection_id)
+
+
+@detection_history_bp.route(
+    '/api/detection-histories/<int:detection_id>',
+    methods=['DELETE'],
+    strict_slashes=False,
+)
+@jwt_required()
+def delete_detection(detection_id: int):
+    """Hapus Riwayat Deteksi.
+    ---
+    tags:
+      - Riwayat Deteksi
+    summary: Hapus satu riwayat deteksi berdasarkan ID (hanya milik user login)
+    security:
+      - Bearer: []
+    parameters:
+      - name: detection_id
+        in: path
+        type: integer
+        required: true
+        description: ID riwayat deteksi yang akan dihapus
+        example: 1
+    responses:
+      200:
+        description: Riwayat berhasil dihapus
+      404:
+        description: Riwayat tidak ditemukan
+      500:
+        description: Kesalahan server
+    """
+    return ctrl.delete_detection(detection_id)
+

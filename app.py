@@ -157,7 +157,7 @@ _allowed_origins = [
 CORS(app, resources={
     r"/api/*": {
         "origins": _allowed_origins,
-        "methods": ["GET", "POST", "DELETE", "OPTIONS"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
@@ -206,12 +206,15 @@ with app.app_context():
     except Exception as e:
         logger.warning("Gagal db.create_all(): %s", e)
 
+
     try:
         logger.info("Menjalankan migrasi database otomatis...")
         flask_db_upgrade()
         logger.info("Migrasi database berhasil disinkronisasi.")
     except Exception as e:
         logger.warning("Gagal menjalankan migrasi otomatis: %s", e)
+
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -93,6 +93,17 @@ def save_detection(
     return record
 
 
+def delete_detection(record: DetectionHistory) -> None:
+    """
+    Hapus satu record DetectionHistory dari database.
+    """
+    db.session.delete(record)
+    db.session.commit()
+
+
+
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Read — list dengan filter, search, sort, pagination
 # ─────────────────────────────────────────────────────────────────────────────
@@ -222,7 +233,7 @@ def get_trend(period: str, current_user_id: int | None = None) -> dict:
     if current_user_id is not None:
         base_q = base_q.filter(DetectionHistory.user_id == current_user_id)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # ── Tentukan rentang waktu & fungsi grouping ──────────────────────────────
     if period == 'weekly':
@@ -231,7 +242,7 @@ def get_trend(period: str, current_user_id: int | None = None) -> dict:
         from datetime import timedelta
         start_dt   = start_dt - timedelta(days=6)
         trunc_expr = func.date_trunc('day', DetectionHistory.created_at)
-        label_fmt  = '%b %d'          # "Jun 09"
+        label_fmt  = '%a'             # "Mon", "Tue", etc.
         buckets    = [start_dt + timedelta(days=i) for i in range(7)]
 
     elif period == 'monthly':
@@ -247,7 +258,7 @@ def get_trend(period: str, current_user_id: int | None = None) -> dict:
                                month=month, day=1,
                                hour=0, minute=0, second=0, microsecond=0)
         trunc_expr = func.date_trunc('month', DetectionHistory.created_at)
-        label_fmt  = '%b %Y'          # "Jun 2026"
+        label_fmt  = '%b'             # "Jan", "Feb", etc.
         # Buat 12 bucket bulanan
         buckets = []
         for i in range(12):

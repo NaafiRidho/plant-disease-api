@@ -19,3 +19,13 @@ class TokenBlocklist(db.Model):
 
     def __repr__(self) -> str:
         return f'<TokenBlocklist jti={self.jti}>'
+
+    @classmethod
+    def cleanup(cls, max_age_days=30):
+        """Hapus token yang sudah kadaluarsa (lebih lama dari max_age_days)."""
+        from datetime import datetime, timezone, timedelta
+        threshold = datetime.now(timezone.utc) - timedelta(days=max_age_days)
+        deleted = db.session.query(cls).filter(cls.created_at < threshold).delete()
+        db.session.commit()
+        return deleted
+

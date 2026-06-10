@@ -39,5 +39,7 @@ class User(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
+
     def __repr__(self):
         return f'<User {self.username}>'
+

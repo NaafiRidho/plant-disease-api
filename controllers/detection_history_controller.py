@@ -131,3 +131,29 @@ def get_trend():
 
     except Exception as exc:
         return server_error(f"Gagal mengambil data tren: {exc}")
+
+
+@jwt_required()
+def delete_detection(detection_id: int):
+    """
+    Hapus satu record riwayat deteksi milik user yang sedang login.
+    """
+    try:
+        user_id = _current_user_id()
+        record = svc.get_detection_by_id(detection_id)
+
+        if record is None:
+            return not_found("DetectionHistory", detection_id)
+
+        # Pastikan record milik user yang login
+        if record.user_id != user_id:
+            return not_found("DetectionHistory", detection_id)
+
+        # Hapus record
+        svc.delete_detection(record)
+
+        return success(message=f"Riwayat deteksi dengan id={detection_id} berhasil dihapus")
+
+    except Exception as exc:
+        return server_error(f"Gagal menghapus riwayat deteksi: {exc}")
+

@@ -101,7 +101,6 @@ def login():
         "user": user.to_dict()
     }), 200
 
-
 @jwt_required()
 def logout():
     """Logout pengguna dengan menyimpan JTI token ke tabel blocklist di database."""
@@ -116,10 +115,18 @@ def logout():
         # Jika JTI sudah ada (duplicate), abaikan
         db.session.rollback()
 
+    # Panggil cleanup token blocklist
+    try:
+        TokenBlocklist.cleanup()
+    except Exception:
+        pass
+
     return jsonify({
         "message": "Logout berhasil. Token telah dinonaktifkan.",
         "status": 200
     }), 200
+
+
 
 
 @jwt_required(refresh=True)
@@ -153,6 +160,63 @@ def get_profile():
         return jsonify({"error": "User tidak ditemukan", "status": 404}), 404
 
     return jsonify({
+        "status": 200,
+        "user": user.to_dict()
+    }), 200
+
+
+@jwt_required()
+def update_profile():
+    """Mengupdate profil pengguna yang sedang login."""
+    user_id = get_jwt_identity()
+    user = db.session.get(User, int(user_id))
+
+    if not user:
+        return jsonify({"error": "User tidak ditemukan", "status": 404}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Request body tidak boleh kosong", "status": 400}), 400
+
+    # Validasi dan update field username
+    if 'username' in data:
+        username = data['username'].strip()
+        if username and username != user.username:
+            if User.query.filter_by(username=username).first():
+                return jsonify({"error": "Username sudah digunakan", "status": 409}), 409
+            user.username = username
+
+    # Validasi dan update field email
+    if 'email' in data:
+        email = data['email'].strip().lower()
+        if email and email != user.email:
+            if User.query.filter_by(email=email).first():
+                return jsonify({"error": "Email sudah terdaftar", "status": 409}), 409
+            user.email = email
+
+    # Update password jika ada
+    if 'password' in data and data['password']:
+        old_password = data.get('old_password')
+        if not old_password:
+            return jsonify({"error": "Password lama wajib diisi untuk mengubah password", "status": 400}), 400
+        if not user.check_password(old_password):
+            return jsonify({"error": "Password lama salah", "status": 400}), 400
+            
+        password = data['password']
+        if len(password) < 6:
+            return jsonify({"error": "Password minimal 6 karakter", "status": 400}), 400
+        if not re.search(r'[A-Z]', password):
+            return jsonify({"error": "Password harus mengandung minimal 1 huruf besar", "status": 400}), 400
+        if not re.search(r'[a-z]', password):
+            return jsonify({"error": "Password harus mengandung minimal 1 huruf kecil", "status": 400}), 400
+        if not re.search(r'[0-9]', password):
+            return jsonify({"error": "Password harus mengandung minimal 1 angka", "status": 400}), 400
+        user.set_password(password)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Profil berhasil diperbarui",
         "status": 200,
         "user": user.to_dict()
     }), 200

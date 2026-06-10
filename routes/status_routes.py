@@ -66,3 +66,4 @@ def health():
               example: Server berjalan (model belum ditraining — mode mock aktif)
     """
     return status_controller.health(current_app.config['START_TIME'])
+

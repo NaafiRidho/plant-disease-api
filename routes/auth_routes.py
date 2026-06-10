@@ -198,3 +198,45 @@ def profile():
         description: User tidak ditemukan
     """
     return auth_controller.get_profile()
+
+
+@auth_bp.route('/profile', methods=['PUT'], strict_slashes=False)
+def update_profile():
+    """Update profil pengguna yang sedang login.
+    ---
+    tags:
+      - Auth
+    summary: Mengupdate profil pengguna (username, email, fullname, specialization, location, bio, password)
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            email:
+              type: string
+            fullname:
+              type: string
+            specialization:
+              type: string
+            location:
+              type: string
+            bio:
+              type: string
+            password:
+              type: string
+    responses:
+      200:
+        description: Profil berhasil diperbarui
+      400:
+        description: Request tidak valid
+      409:
+        description: Username atau email sudah digunakan
+    """
+    return auth_controller.update_profile()
+
